@@ -48,7 +48,6 @@ entity emsx_top is
     generic(
         use_wifi_g          : boolean := true;
         use_midi_g          : boolean := true;
-        use_system_timer_g  : boolean := false;
         set_low_scanlines_g : boolean := true
     );
     port(
@@ -475,20 +474,6 @@ architecture RTL of emsx_top is
         );
     end component;
 
-    -- system timer (S1990)
-    component system_timer
-        port(
-            clk21m  : in    std_logic;
-            reset   : in    std_logic;
-            req     : in    std_logic;
-            ack     : out   std_logic;
-            wrt     : in    std_logic;
-            adr     : in    std_logic_vector( 15 downto 0 );
-            dbi     : out   std_logic_vector(  7 downto 0 );
-            dbo     : in    std_logic_vector(  7 downto 0 )
-        );
-    end component;
-
     -- low pass filter 1
     component lpf1
         generic(
@@ -694,10 +679,6 @@ architecture RTL of emsx_top is
     signal  WarmMSXlogo     : std_logic;
     signal  full_reset_comb : std_logic;
     signal  cold_reset_comb : std_logic;
-
-    -- System timer (S1990)
-    signal  systim_req      : std_logic;
-    signal  systim_dbi      : std_logic_vector(  7 downto 0 ) := (others => '0');
 
     -- Operation mode
     signal  w_key_mode      : std_logic;                                            -- Kana keyboard layout: 1=JIS layout (PSG)
@@ -1658,8 +1639,6 @@ begin
                 dlydbi <= "1" & MapDbi(  6 downto 0 );
             elsif( mem = '0' and adr(  7 downto 1 ) = "1011010" )then                                       -- RTC (RP-5C01)
                 dlydbi <= RtcDbi;
-            elsif( mem = '0' and adr(  7 downto 1 ) = "1110011" and use_system_timer_g )then                -- System timer (S1990)
-                dlydbi <= systim_dbi;
             elsif( mem = '0' and adr(  7 downto 4 ) = "0100" and io40_n /= "11111111" )then                 -- Switched I/O ports
                 dlydbi <= swio_dbi;
             elsif( mem = '0' and adr(  7 downto 0 ) = "10100111" and portF4_mode = '1' )then                -- Pause R800 (read only)
@@ -1976,7 +1955,6 @@ begin
     Scc2Req     <=  req when( iSltScc2 = '1'                                                                            )else '0';  -- MEM:       / ESE-SCC2
     ErmReq      <=  req when( iSltErm  = '1'                                                                            )else '0';  -- MEM:       / ESE-RAM, MegaSD
     RtcReq      <=  req when( mem = '0' and adr(7 downto 1) = "1011010"                                                 )else '0';  -- I/O:B4-B5h / RTC (RP-5C01)
-    systim_req  <=  req when( mem = '0' and adr(7 downto 1) = "1110011" and use_system_timer_g                          )else '0';  -- I/O:E6-E7h / System timer (S1990)
     swio_req    <=  req when( mem = '0' and adr(7 downto 4) = "0100"                                                    )else '0';  -- I/O:40-4Fh / Switched I/O ports
     portF2_req  <=  req when( mem = '0' and adr(7 downto 0) = "11110010" and portF2_ena = '1' and use_wifi_g            )else '0';  -- I/O:F2h    / F2 Device (ESP8266 BIOS)
     portF4_req  <=  req when( mem = '0' and adr(7 downto 0) = "11110100"                                                )else '0';  -- I/O:F4h    / F4 Device
@@ -1988,7 +1966,6 @@ begin
                 '1' when( pSltAdr(7 downto 1) = "1101100"                                       )else   -- I/O:D8-D9h / Kanji-data (JIS1 only)
                 '1' when( pSltAdr(7 downto 2) = "111111"                                        )else   -- I/O:FC-FFh / Memory-mapper
                 '1' when( pSltAdr(7 downto 1) = "1011010"                                       )else   -- I/O:B4-B5h / RTC (RP-5C01)
---              '1' when( pSltAdr(7 downto 1) = "1110011"                                       )else   -- I/O:E6-E7h / System timer (S1990)
                 '1' when( pSltAdr(7 downto 4) = "0100" and io40_n /= "11111111"                 )else   -- I/O:40-4Fh / Switched I/O ports
                 '1' when( pSltAdr(7 downto 0) = "10100111" and portF4_mode = '1'                )else   -- I/O:A7h    / Pause R800 (read only)
                 '1' when( pSltAdr(7 downto 0) = "11110010" and portF2_ena = '1' and use_wifi_g  )else   -- I/O:F2h    / F2 Device (ESP8266 BIOS)
@@ -2824,20 +2801,6 @@ begin
 
     U33 : esepwm
         generic map(DAC_msbi) port map(clk21m, not power_on_reset, lpf5_wave, DACout);
-
-    u_system_timer : if use_system_timer_g generate
-        U34 : system_timer
-            port map(
-                clk21m  => clk21m           ,
-                reset   => reset            ,
-                req     => systim_req       ,
-                ack     => open             ,
-                wrt     => wrt              ,
-                adr     => adr              ,
-                dbi     => systim_dbi       ,
-                dbo     => dbo
-            );
-    end generate;
 
     U35 : switched_io_ports
         generic map(
