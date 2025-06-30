@@ -475,20 +475,6 @@ architecture RTL of emsx_top is
         );
     end component;
 
-    -- system timer (S1990)
-    component system_timer
-        port(
-            clk21m  : in    std_logic;
-            reset   : in    std_logic;
-            req     : in    std_logic;
-            ack     : out   std_logic;
-            wrt     : in    std_logic;
-            adr     : in    std_logic_vector( 15 downto 0 );
-            dbi     : out   std_logic_vector(  7 downto 0 );
-            dbo     : in    std_logic_vector(  7 downto 0 )
-        );
-    end component;
-
     -- low pass filter 1
     component lpf1
         generic(
@@ -595,7 +581,6 @@ architecture RTL of emsx_top is
             SdrSize         : in    std_logic_vector(  1 downto 0 );            -- SDRAM size ID 0-3
             bios_reload_ack : out   std_logic;                                  -- OCM-BIOS Reloading ack
             Mapper0_req     : inout std_logic;                                  -- Extra-Mapper req         :   Warm Reset is required to complete the request
-            Slot0_req       : inout std_logic;                                  -- Slot0 Primary Mode req   :   Warm Reset is required to complete the request
 
             xmr_ena         : inout std_logic;                                  -- Extended MegaROM Reading :   0=Off (default for compatibility), 1=On
             SdrSizeAux      : in    std_logic_vector(  2 downto 0 );            -- Auxiliary SDRAM size ID 0-7
@@ -604,9 +589,7 @@ architecture RTL of emsx_top is
             spMaxSpr        : inout std_logic;                                  -- Sprite Limit             :   0=4/8 (standard), 1=8/8 (enhanced)
             vga_int_field   : inout std_logic;                                  -- VGA Interlace Field      :   0=Single (default), 1=Duplicate
             low_scale_n     : in    std_logic;                                  -- VGA Scanlines variant    :   0=Low-Scale (0%|12%|25%|50%), 1=High-Scale (0%|25%|50%|75%)
-            cbios_mode      : inout std_logic;                                  -- C-BIOS Mode              :   0=Off (default), 1=On
             Mapper0_ack     : inout std_logic;                                  -- Current Extra-Mapper state
-            Slot0Mode       : inout std_logic;                                  -- Current Slot0 state      :   0=Primary, 1=Expanded
             safe_mode       : inout std_logic;                                  -- Safe Mode                :   0=Off (default), 1=On [Reserved for IPL-ROM]
             portF2_ena      : inout std_logic;                                  -- F2 Device enabler
 
@@ -635,21 +618,6 @@ architecture RTL of emsx_top is
             WarmMSXlogo     : inout std_logic;                                  -- Show MSX logo with Warm Reset
             full_reset_comb : in    std_logic;                                  -- Full Reset combination
             cold_reset_comb : in    std_logic                                   -- Cold Reset combination
-        );
-    end component;
-
-    component tr_pcm                                                            -- Added by t.hara, 2019/Nov/29th
-        port(
-            clk21m          : in    std_logic;
-            reset           : in    std_logic;
-            req             : in    std_logic;
-            ack             : out   std_logic;
-            wrt             : in    std_logic;
-            adr             : in    std_logic;
-            dbi             : out   std_logic_vector(  7 downto 0 );
-            dbo             : in    std_logic_vector(  7 downto 0 );
-            wave_in         : in    std_logic_vector(  7 downto 0 );
-            wave_out        : out   std_logic_vector(  7 downto 0 )
         );
     end component;
 
@@ -694,12 +662,9 @@ architecture RTL of emsx_top is
     signal  iPsg2_ena       : std_logic;
     signal  bios_reload_ack : std_logic := '0';
     signal  Mapper0_req     : std_logic;
-    signal  Slot0_req       : std_logic;
     signal  xmr_ena         : std_logic;
     signal  low_scale_n     : std_logic;
-    signal  cbios_mode      : std_logic;
     signal  Mapper0_ack     : std_logic;
-    signal  Slot0Mode       : std_logic;
     signal  safe_mode       : std_logic := '0';
     signal  ff_dip_req      : std_logic_vector(  7 downto 0 ) := "10000011";        -- overwrites any startup errors with the most common settings
     signal  ff_dip_ack      : std_logic_vector(  7 downto 0 );
@@ -715,10 +680,6 @@ architecture RTL of emsx_top is
     signal  WarmMSXlogo     : std_logic;
     signal  full_reset_comb : std_logic;
     signal  cold_reset_comb : std_logic;
-
-    -- System timer (S1990)
-    signal  systim_req      : std_logic;
-    signal  systim_dbi      : std_logic_vector(  7 downto 0 ) := (others => '0');
 
     -- Operation mode
     signal  w_key_mode      : std_logic;                                            -- Kana keyboard layout: 1=JIS layout (PSG)
@@ -1020,12 +981,6 @@ architecture RTL of emsx_top is
     signal  portF4_req      : std_logic;
     signal  portF4_bit7     : std_logic;                                            -- 1=hard reset, 0=soft reset
 
-    -- turboR PCM device
-    signal  tr_pcm_req      : std_logic;
-    signal  tr_pcm_dbi      : std_logic_vector(  7 downto 0 );
-    signal  tr_pcm_wave_in  : std_logic_vector(  7 downto 0 );
-    signal  tr_pcm_wave_out : std_logic_vector(  7 downto 0 );
-
     -- Mixer
     signal  ff_prepsg       : std_logic_vector(  8 downto 0 );
     signal  ff_prescc       : std_logic_vector( 15 downto 0 );
@@ -1036,7 +991,6 @@ architecture RTL of emsx_top is
     signal  ff_opll         : std_logic_vector( DACin'high + 2 downto DACin'low );
     signal  ff_psg_offset   : std_logic_vector( DACin'high + 2 downto DACin'low );
     signal  ff_scc_offset   : std_logic_vector( DACin'high + 2 downto DACin'low );
-    signal  ff_tr_pcm       : std_logic_vector( DACin'high + 2 downto DACin'low );
     signal  ff_pre_dacin    : std_logic_vector( DACin'high + 2 downto DACin'low );
     constant c_opll_offset  : std_logic_vector( DACin'high + 2 downto DACin'low ) := (ff_pre_dacin'high => '1', others => '0');
     constant c_opll_zero    : std_logic_vector( OpllAmp'range ) := (OpllAmp'high => '1', others => '0');
@@ -1686,14 +1640,8 @@ begin
                 dlydbi <= "1" & MapDbi(  6 downto 0 );
             elsif( mem = '0' and adr(  7 downto 1 ) = "1011010" )then                                       -- RTC (RP-5C01)
                 dlydbi <= RtcDbi;
-            elsif( mem = '0' and adr(  7 downto 1 ) = "1110011" and use_system_timer_g )then                -- System timer (S1990)
-                dlydbi <= systim_dbi;
-            elsif( mem = '0' and adr(  7 downto 1 ) = "1010010" )then                                       -- turboR PCM device
-                dlydbi <= tr_pcm_dbi;
             elsif( mem = '0' and adr(  7 downto 4 ) = "0100" and io40_n /= "11111111" )then                 -- Switched I/O ports
                 dlydbi <= swio_dbi;
-            elsif( mem = '0' and adr(  7 downto 0 ) = "10100111" and portF4_mode = '1' )then                -- Pause R800 (read only)
-                dlydbi <= (others => '0');
             elsif( mem = '0' and adr(  7 downto 0 ) = "11110010" and portF2_ena = '1' and use_wifi_g )then  -- F2 Device (ESP8266 BIOS)
                 dlydbi <= portF2;
             elsif( mem = '0' and adr(  7 downto 0 ) = "11110100" and portF4_mode = '1' )then                -- F4 Device normal (Z80 mode)
@@ -1874,11 +1822,7 @@ begin
             -- Memory mapped I/O port access on FFFFh ... expansion slot register (master mode)
             if( req = '1' and iSltMerq_n = '0' and wrt = '1' and adr = X"FFFF" )then
                 if( PpiPortA(7 downto 6) = "00" )then
-                    if( Slot0Mode = '1' )then
-                        ExpSlot0 <= dbo;
-                    else
-                        ExpSlot0 <= (others => '0');
-                    end if;
+                    ExpSlot0 <= dbo;
                 end if;
             end if;
         end if;
@@ -1961,14 +1905,13 @@ begin
     -- Address Decode for CPU
     ----------------------------------------------------------------
     -- Slot0-X
-    rom_main    <=  mem when( (w_prislt_dec(0) and (w_expslt0_dec(0) or (not Slot0Mode)) and (w_page_dec(0) or w_page_dec(1))) = '1'            )else   -- 0-0 (0000-7FFFh)    32 KB  MSX2P   .ROM / MSXTR   .ROM
+    rom_main    <=  mem when( (w_prislt_dec(0) and w_expslt0_dec(0) and (w_page_dec(0) or w_page_dec(1))) = '1'                                 )else   -- 0-0 (0000-7FFFh)    32 KB  MSX2P   .ROM / MSXTR   .ROM
                     '0';
-    iSltMap0    <=  mem when( (w_prislt_dec(0) and w_expslt0_dec(1) and Slot0Mode and iSlt0_1 ) = '1' and adr /= X"FFFF" and SdrSize /= "00"    )else   -- 0-1 (0000-FFFEh)  4096 KB  Extra-Mapper
+    iSltMap0    <=  mem when( (w_prislt_dec(0) and w_expslt0_dec(1) and iSlt0_1 ) = '1' and adr /= X"FFFF" and SdrSize /= "00"                  )else   -- 0-1 (0000-FFFEh)  4096 KB  Extra-Mapper
                     '0';
-    rom_opll    <=  mem when( (w_prislt_dec(0) and w_expslt0_dec(2) and Slot0Mode and w_page_dec(1)) = '1'                                      )else   -- 0-2 (4000-7FFFh)    16 KB  MSX2PMUS.ROM / MSXTRMUS.ROM
+    rom_opll    <=  mem when( (w_prislt_dec(0) and w_expslt0_dec(2) and w_page_dec(1)) = '1'                                                    )else   -- 0-2 (4000-7FFFh)    16 KB  MSX2PMUS.ROM / MSXTRMUS.ROM
                     '0';
-    rom_free    <=  mem when( (w_prislt_dec(0) and w_expslt0_dec(3) and Slot0Mode and w_page_dec(1)) = '1'                                      )else   -- 0-3 (4000-7FFFh)    16 KB  FREE16KB.ROM / MSXTROPT.ROM
-                    mem when( (w_prislt_dec(0) and cbios_mode and w_page_dec(2)) = '1'                                                          )else   -- 0   (8000-BFFFh)    16 KB  C-BIOS Logo ROM preallocated in Slot0-3 area
+    rom_free    <=  mem when( (w_prislt_dec(0) and w_expslt0_dec(3) and w_page_dec(1)) = '1'                                                    )else   -- 0-3 (4000-7FFFh)    16 KB  FREE16KB.ROM / MSXTROPT.ROM
                     '0';
     -- Slot1
     iSltScc1    <=  mem when( (w_prislt_dec(1) and (w_page_dec(1) or w_page_dec(2)) and (not iSlt1_linear)) = '1' and Scc1Type /= "00"          )else   -- 1   (4000-BFFFh)  2048 KB  ESE-SCC1
@@ -2002,7 +1945,7 @@ begin
     VdpReq      <=  req when( mem = '0' and adr(7 downto 2) = "100110"                                                  )else '0';  -- I/O:98-9Bh / VDP (V9938/V9958)
     PsgReq      <=  req when( mem = '0' and adr(7 downto 2) = "101000"                                                  )else '0';  -- I/O:A0-A3h / PSG (AY-3-8910)
     PpiReq      <=  req when( mem = '0' and adr(7 downto 2) = "101010"                                                  )else '0';  -- I/O:A8-ABh / PPI (8255)
-    OpllReq     <=  req when( mem = '0' and adr(7 downto 1) = "0111110" and (Slot0Mode = '1' or cbios_mode = '1')       )else '0';  -- I/O:7C-7Dh / OPLL (YM2413) (Slot0 Primary Mode allows an external OPLL, C-BIOS mode does not)
+    OpllReq     <=  req when( mem = '0' and adr(7 downto 1) = "0111110"                                                 )else '0';  -- I/O:7C-7Dh / OPLL (YM2413)
     KanReq      <=  req when( mem = '0' and adr(7 downto 2) = "110110"                                                  )else '0';  -- I/O:D8-DBh / Kanji-data
     RomReq      <=  req when( (rom_main or rom_opll or rom_extd or rom_xbas or rom_free or iSltLin1 or iSltLin2) = '1'  )else '0';
     MapReq      <=  req when( mem = '0' and adr(7 downto 2) = "111111"                                                  )else       -- I/O:FC-FFh / Memory-mapper
@@ -2011,11 +1954,9 @@ begin
     Scc2Req     <=  req when( iSltScc2 = '1'                                                                            )else '0';  -- MEM:       / ESE-SCC2
     ErmReq      <=  req when( iSltErm  = '1'                                                                            )else '0';  -- MEM:       / ESE-RAM, MegaSD
     RtcReq      <=  req when( mem = '0' and adr(7 downto 1) = "1011010"                                                 )else '0';  -- I/O:B4-B5h / RTC (RP-5C01)
-    systim_req  <=  req when( mem = '0' and adr(7 downto 1) = "1110011" and use_system_timer_g                          )else '0';  -- I/O:E6-E7h / System timer (S1990)
     swio_req    <=  req when( mem = '0' and adr(7 downto 4) = "0100"                                                    )else '0';  -- I/O:40-4Fh / Switched I/O ports
     portF2_req  <=  req when( mem = '0' and adr(7 downto 0) = "11110010" and portF2_ena = '1' and use_wifi_g            )else '0';  -- I/O:F2h    / F2 Device (ESP8266 BIOS)
     portF4_req  <=  req when( mem = '0' and adr(7 downto 0) = "11110100"                                                )else '0';  -- I/O:F4h    / F4 Device
-    tr_pcm_req  <=  req when( mem = '0' and adr(7 downto 1) = "1010010"                                                 )else '0';  -- I/O:A4-A5h / turboR PCM device
 
     BusDir  <=  '1' when( pSltAdr(7 downto 2) = "100110"                                        )else   -- I/O:98-9Bh / VDP (V9938/V9958)
                 '1' when( pSltAdr(7 downto 2) = "101000"                                        )else   -- I/O:A0-A3h / PSG (AY-3-8910)
@@ -2024,12 +1965,9 @@ begin
                 '1' when( pSltAdr(7 downto 1) = "1101100"                                       )else   -- I/O:D8-D9h / Kanji-data (JIS1 only)
                 '1' when( pSltAdr(7 downto 2) = "111111"                                        )else   -- I/O:FC-FFh / Memory-mapper
                 '1' when( pSltAdr(7 downto 1) = "1011010"                                       )else   -- I/O:B4-B5h / RTC (RP-5C01)
---              '1' when( pSltAdr(7 downto 1) = "1110011"                                       )else   -- I/O:E6-E7h / System timer (S1990)
                 '1' when( pSltAdr(7 downto 4) = "0100" and io40_n /= "11111111"                 )else   -- I/O:40-4Fh / Switched I/O ports
-                '1' when( pSltAdr(7 downto 0) = "10100111" and portF4_mode = '1'                )else   -- I/O:A7h    / Pause R800 (read only)
                 '1' when( pSltAdr(7 downto 0) = "11110010" and portF2_ena = '1' and use_wifi_g  )else   -- I/O:F2h    / F2 Device (ESP8266 BIOS)
                 '1' when( pSltAdr(7 downto 0) = "11110100"                                      )else   -- I/O:F4h    / F4 Device
-                '1' when( pSltAdr(7 downto 1) = "1010010"                                       )else   -- I/O:A4-A5h / turboR PCM device
                 '1' when( pSltAdr(7 downto 1) = "0000011" and use_wifi_g                        )else   -- I/O:06-07h / ESP
                 '1' when( pSltAdr(7 downto 0) = "11101001" and use_midi_g                       )else   -- I/O:E9h    / MIDI
                 '0';
@@ -2188,7 +2126,6 @@ begin
         variable c_Opll     : std_logic_vector(  3 downto  0 );     -- combine OpllVol and MstrVol
         variable chPsg      : std_logic_vector( ff_prepsg'range );
         variable chOpll     : std_logic_vector( ff_pre_dacin'range );
-        variable tr_pcm_vol : std_logic_vector(  2 downto  0 );
     begin
         if( clk21m'event and clk21m = '1' )then
 
@@ -2248,23 +2185,7 @@ begin
                 end if;
                 ff_opll <= c_opll_offset + (chOpll - chOpll( chOpll'high downto  3 ));
             end if;
-
-            -- amplitude ramp of the turboR PCM (mixer level equivalences: off, 4, 7 and 10 out of 13)
-            tr_pcm_vol  := MstrVol;
-            case tr_pcm_vol is
-                when "000" | "001"         =>
-                    ff_tr_pcm(             10 downto  0 ) <= tr_pcm_wave_out & "000";
-                    ff_tr_pcm( ff_tr_pcm'high downto 11 ) <= (others => tr_pcm_wave_out(7));
-                when "010" | "011" | "100" =>
-                    ff_tr_pcm(              9 downto  0 ) <= tr_pcm_wave_out(  7 downto  1 ) & "000";
-                    ff_tr_pcm( ff_tr_pcm'high downto 10 ) <= (others => tr_pcm_wave_out(7));
-                when "101" | "110"         =>
-                    ff_tr_pcm(              8 downto  0 ) <= tr_pcm_wave_out(  7 downto  2 ) & "000";
-                    ff_tr_pcm( ff_tr_pcm'high downto  9 ) <= (others => tr_pcm_wave_out(7));
-                when others                =>
-                    ff_tr_pcm                             <= (others => tr_pcm_wave_out(7));
-            end case;
-        end if;
+       end if;
     end process;
 
     process( clk21m )
@@ -2272,7 +2193,7 @@ begin
         if( clk21m'event and clk21m = '1' )then
 
             -- ff_pre_dacin assignment
-            ff_pre_dacin <= (not ff_psg) + ff_scc + ff_opll + ff_tr_pcm;
+            ff_pre_dacin <= (not ff_psg) + ff_scc + ff_opll;
 
             -- amplitude limiter
             case ff_pre_dacin( ff_pre_dacin'high downto ff_pre_dacin'high - 2 ) is
@@ -2879,20 +2800,6 @@ begin
     U33 : esepwm
         generic map(DAC_msbi) port map(clk21m, not power_on_reset, lpf5_wave, DACout);
 
-    u_system_timer : if use_system_timer_g generate
-        U34 : system_timer
-            port map(
-                clk21m  => clk21m           ,
-                reset   => reset            ,
-                req     => systim_req       ,
-                ack     => open             ,
-                wrt     => wrt              ,
-                adr     => adr              ,
-                dbi     => systim_dbi       ,
-                dbo     => dbo
-            );
-    end generate;
-
     U35 : switched_io_ports
         generic map(
             use_wifi_g      => use_wifi_g
@@ -2957,7 +2864,6 @@ begin
             SdrSize         => SdrSize          ,
             bios_reload_ack => bios_reload_ack  ,
             Mapper0_req     => Mapper0_req      ,
-            Slot0_req       => Slot0_req        ,
 
             xmr_ena         => xmr_ena          ,
             SdrSizeAux      => SdrSizeAux       ,
@@ -2966,9 +2872,7 @@ begin
             spMaxSpr        => spMaxSpr         ,
             vga_int_field   => vga_int_field    ,
             low_scale_n     => low_scale_n      ,
-            cbios_mode      => cbios_mode       ,
             Mapper0_ack     => Mapper0_ack      ,
-            Slot0Mode       => Slot0Mode        ,
             safe_mode       => safe_mode        ,
             portF2_ena      => portF2_ena       ,
 
@@ -2998,12 +2902,6 @@ begin
             full_reset_comb => full_reset_comb  ,
             cold_reset_comb => cold_reset_comb
         );
-
-    U40 : tr_pcm
-        port map(clk21m, reset, tr_pcm_req, open, wrt, adr(0), tr_pcm_dbi, dbo,
-                        tr_pcm_wave_in, tr_pcm_wave_out);
-
-    tr_pcm_wave_in <= (others => '0');
 
     wifi : if use_wifi_g generate
         uwifi : work.wifi

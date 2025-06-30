@@ -51,7 +51,7 @@
 -- Intel Quartus Prime Lite Edition Design Software v24.1 (SM-X and SX-2)
 --                http://www.intel.com/content/www/us/en/collections/products/fpga/software/downloads.html
 -------------------------------------------------------------------------------------------------------------------
--- Special thanks to OCM-PLD other authors.
+-- Special thanks to OCM-PLD authors and stakeholder.
 -- (For the list of names, which has been omitted, please refer to history.txt in OCM-PLD)
 -------------------------------------------------------------------------------------------------------------------
 --

@@ -99,7 +99,6 @@ entity switched_io_ports is
         SdrSize         : in    std_logic_vector(  1 downto 0 );            -- SDRAM size ID 0-3
         bios_reload_ack : out   std_logic;                                  -- OCM-BIOS Reloading ack
         Mapper0_req     : inout std_logic;                                  -- Extra-Mapper req         :   Warm Reset is required to complete the request
-        Slot0_req       : inout std_logic;                                  -- Slot0 Primary Mode req   :   Warm Reset is required to complete the request
 
         xmr_ena         : inout std_logic;                                  -- Extended MegaROM Reading :   0=Off (default for compatibility), 1=On
         SdrSizeAux      : in    std_logic_vector(  2 downto 0 );            -- Auxiliary SDRAM size ID 0-7
@@ -108,9 +107,7 @@ entity switched_io_ports is
         spMaxSpr        : inout std_logic;                                  -- Sprite Limit             :   0=4/8 (standard), 1=8/8 (enhanced)
         vga_int_field   : inout std_logic;                                  -- VGA Interlace Field      :   0=Single (default), 1=Duplicate
         low_scale_n     : in    std_logic;                                  -- VGA Scanlines variant    :   0=Low-Scale (0%|12%|25%|50%), 1=High-Scale (0%|25%|50%|75%)
-        cbios_mode      : inout std_logic;                                  -- C-BIOS Mode              :   0=Off (default), 1=On
         Mapper0_ack     : inout std_logic;                                  -- Current Extra-Mapper state
-        Slot0Mode       : inout std_logic;                                  -- Current Slot0 state      :   0=Primary, 1=Expanded
         safe_mode       : inout std_logic;                                  -- Safe Mode                :   0=Off (default), 1=On [Reserved for IPL-ROM]
         portF2_ena      : inout std_logic;                                  -- F2 Device enabler
 
@@ -207,13 +204,13 @@ begin
                 when( (adr(3 downto 0) = "1010") and (io40_n = "00101011") )else
 --  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             -- $4B ID212 [Dynamic Port 4B d-ID $00], if $44 ID212 equ #000 states as below => read only
-            Slot0_req & Mapper0_req & bios_reload_req & SdrSize & iPsg2_ena & vga_scanlines
+            '1' & Mapper0_req & bios_reload_req & SdrSize & iPsg2_ena & vga_scanlines
                 when( (adr(3 downto 0) = "1011") and (io40_n = "00101011") and (io44_id212 = "00000000") )else
             -- $4B ID212 [Dynamic Port 4B d-ID $01], if $44 ID212 equ #001 states as below => read only
             std_logic_vector(OFFSET_Y - 12)(3 downto 0) & SdrSizeAux & xmr_ena
                 when( (adr(3 downto 0) = "1011") and (io40_n = "00101011") and (io44_id212 = "00000001") )else
             -- $4B ID212 [Dynamic Port 4B d-ID $02], if $44 ID212 equ #002 states as below => read only
-            portF2_ena & safe_mode & Slot0Mode & Mapper0_ack & cbios_mode & low_scale_n & vga_int_field & spMaxSpr
+            portF2_ena & safe_mode & '1' & Mapper0_ack & '0' & low_scale_n & vga_int_field & spMaxSpr
                 when( (adr(3 downto 0) = "1011") and (io40_n = "00101011") and (io44_id212 = "00000010") )else
 --  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             -- $4C ID212 states of physical dip-sw => read only
@@ -249,7 +246,6 @@ begin
                 RatioMode       <=  "000";                  -- Restore Pixel Ratio 1:1 for LED Display after each reboot
                 bios_reload_req <=  '0';                    -- OCM-BIOS Reloading is Off (default)
                 bios_reload_ack <=  '0';                    -- End of OCM-BIOS Reloading
-                cbios_mode      <=  '0';                    -- C-BIOS Mode is Off after each reboot
                 vram_slot_ids   <=  "00010000";             -- Restore VRAM Slot ID after each reboot
                 if( warmRESET /= '1' )then
                     -- Cold Reset
@@ -289,13 +285,11 @@ begin
                     iSlt2_linear    <=  '0';                -- Internal Slot2 Linear is Off
                     iPsg2_ena       <=  '0';                -- Internal PSG2 is Off
                     Mapper0_req     <=  '0';                -- Set Extra-Mapper state is Off
-                    Slot0_req       <=  '1';                -- Set Slot0 Expanded Mode
                     xmr_ena         <=  '0';                -- Extended MegaROM Reading is Off
                     OFFSET_Y        <=  "0010011";          -- Default Vertical Offset
                     spMaxSpr        <=  '0';                -- Sprite Limit is 4/8
                     vga_int_field   <=  '0';                -- VGA Interlace Single Field
                     Mapper0_ack     <=  '0';                -- Prevent system crash using a toggle
-                    Slot0Mode       <=  '1';                -- Prevent system crash during the reset phase
                     safe_mode       <=  '0';                -- Safe Mode is Off
                     if( use_wifi_g )then
                         portF2_ena  <=  '1';                -- F2 Device is On
@@ -311,7 +305,6 @@ begin
                     LastRst_sta     <=  not WarmMSXlogo;    -- F4 Warm Reset state
                     LastRst_ack     <=  '1';                -- Warm Reset ack
                     Mapper0_ack     <=  Mapper0_req;        -- Confirm the last Extra-Mapper state
-                    Slot0Mode       <=  Slot0_req;          -- Confirm the last Slot0 state
                 end if;
 
             else
@@ -322,7 +315,7 @@ begin
                     -- in assignment: 'Green Level Enabler'
                     GreenLvEna  <=  '0';
                     -- in assignment: 'Reset Request State' (internal signal)
-                    if( (Mapper_req /= io42_id212(6)) or (MegaSD_req /= io42_id212(7)) or (Slot0_req /= Slot0Mode) or (Mapper0_req /= Mapper0_ack) )then
+                    if( (Mapper_req /= io42_id212(6)) or (MegaSD_req /= io42_id212(7)) or (Mapper0_req /= Mapper0_ack) )then
                         RstReq_sta  <=  '1';                                    -- Yes
                     else
                         RstReq_sta  <=  '0';                                    -- No
@@ -1007,9 +1000,6 @@ begin
                             -- SMART CODE   #212
                             when "11010100" =>                                  -- Null Command $D4 (reserved)
                                 null;
-                                if( ff_ldbios_n = '0' )then                     -- C-BIOS Mode On [Reserved for IPL-ROM]
-                                    cbios_mode  <=  '1';
-                                end if;
                             -- SMART CODE   #213
                             when "11010101" =>                                  -- Restore Default Turbo Modes
                                 io42_id212(0)   <=  ff_dip_req(0);
@@ -1030,16 +1020,8 @@ begin
                             when "11111000" =>                                  -- OCM-BIOS Reloading (cold reset or warm reset to go)
                                 bios_reload_req <=  '1';
                             -- SMART CODE   #249, #250
-                            when "11111001" =>                                  -- Slot0 Primary Mode (warm reset to go) (internal OPLL disabled)
-                                Slot0_req   <=  '0';
-                                if( ff_ldbios_n = '0' )then                     -- Slot0 Primary Mode (ready to go) [Reserved for IPL-ROM]
-                                    Slot0Mode   <=  '0';
-                                end if;
-                            when "11111010" =>                                  -- Slot0 Expanded Mode (warm reset to go) (default)
-                                Slot0_req   <=  '1';
-                                if( ff_ldbios_n = '0' )then                     -- Slot0 Expanded Mode (ready to go) [Reserved for IPL-ROM]
-                                    Slot0Mode   <=  '1';
-                                end if;
+                            when "11111001" | "11111010" =>                     -- Null Command (deleted this machine)
+                                null;
                             -- SMART CODES  #251, #252, #253, #254
                             when "11111011" =>                                  -- Cold Reset (audio volume will be reset)
                                 if( ff_ldbios_n = '0' )then
@@ -1112,7 +1094,6 @@ begin
                                 vga_scanlines           <=  "00";
                                 iPsg2_ena               <=  '0';
                                 Mapper0_req             <=  '0';
-                                Slot0_req               <=  '1';
                                 xmr_ena                 <=  '0';
                                 OFFSET_Y                <=  "0010011";
                                 spMaxSpr                <=  '0';
@@ -1128,7 +1109,6 @@ begin
                                     Mapper_ack          <=  ff_dip_req(6);
                                     MegaSD_ack          <=  ff_dip_req(7);
                                     Mapper0_ack         <=  '0';
-                                    Slot0Mode           <=  '1';
                                     safe_mode           <=  '1';
                                 end if;
                             -- NULL CODES
