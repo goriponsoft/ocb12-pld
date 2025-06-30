@@ -150,7 +150,7 @@ architecture RTL of switched_io_ports is
     signal  bios_reload_req : std_logic := '0';                             -- OCM-BIOS Reloading req
 
     -- Machine Type ID (0-15) : 0=1chipMSX, 1=Zemmix Neo / SX-1 and related, 2=SM-X (regular) / MC2P, 3=SX-2, 4=SM-X Mini / SM-X HB / u2-SX, 5=DE0CV+DEOCM, 6=SX-E / SX-Lite, 7-15=Unknown
-    constant MachineID  : std_logic_vector(  3 downto 0 ) :=     "0001";    -- 1
+    constant MachineID  : std_logic_vector(  3 downto 0 ) :=     "1111";    -- 15
 
     -- OCM-PLD version number (x \ 10).(y mod 10).(z[0~3])                  -- OCM-PLD version 0.0(.0) ~ 25.5(.3)
     constant ocm_pld_xy : std_logic_vector(  7 downto 0 ) := "00100111";    -- 39
