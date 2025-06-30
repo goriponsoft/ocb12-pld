@@ -595,7 +595,6 @@ architecture RTL of emsx_top is
             SdrSize         : in    std_logic_vector(  1 downto 0 );            -- SDRAM size ID 0-3
             bios_reload_ack : out   std_logic;                                  -- OCM-BIOS Reloading ack
             Mapper0_req     : inout std_logic;                                  -- Extra-Mapper req         :   Warm Reset is required to complete the request
-            Slot0_req       : inout std_logic;                                  -- Slot0 Primary Mode req   :   Warm Reset is required to complete the request
 
             xmr_ena         : inout std_logic;                                  -- Extended MegaROM Reading :   0=Off (default for compatibility), 1=On
             SdrSizeAux      : in    std_logic_vector(  2 downto 0 );            -- Auxiliary SDRAM size ID 0-7
@@ -604,9 +603,7 @@ architecture RTL of emsx_top is
             spMaxSpr        : inout std_logic;                                  -- Sprite Limit             :   0=4/8 (standard), 1=8/8 (enhanced)
             vga_int_field   : inout std_logic;                                  -- VGA Interlace Field      :   0=Single (default), 1=Duplicate
             low_scale_n     : in    std_logic;                                  -- VGA Scanlines variant    :   0=Low-Scale (0%|12%|25%|50%), 1=High-Scale (0%|25%|50%|75%)
-            cbios_mode      : inout std_logic;                                  -- C-BIOS Mode              :   0=Off (default), 1=On
             Mapper0_ack     : inout std_logic;                                  -- Current Extra-Mapper state
-            Slot0Mode       : inout std_logic;                                  -- Current Slot0 state      :   0=Primary, 1=Expanded
             safe_mode       : inout std_logic;                                  -- Safe Mode                :   0=Off (default), 1=On [Reserved for IPL-ROM]
             portF2_ena      : inout std_logic;                                  -- F2 Device enabler
 
@@ -694,12 +691,9 @@ architecture RTL of emsx_top is
     signal  iPsg2_ena       : std_logic;
     signal  bios_reload_ack : std_logic := '0';
     signal  Mapper0_req     : std_logic;
-    signal  Slot0_req       : std_logic;
     signal  xmr_ena         : std_logic;
     signal  low_scale_n     : std_logic;
-    signal  cbios_mode      : std_logic;
     signal  Mapper0_ack     : std_logic;
-    signal  Slot0Mode       : std_logic;
     signal  safe_mode       : std_logic := '0';
     signal  ff_dip_req      : std_logic_vector(  7 downto 0 ) := "10000011";        -- overwrites any startup errors with the most common settings
     signal  ff_dip_ack      : std_logic_vector(  7 downto 0 );
@@ -1874,11 +1868,7 @@ begin
             -- Memory mapped I/O port access on FFFFh ... expansion slot register (master mode)
             if( req = '1' and iSltMerq_n = '0' and wrt = '1' and adr = X"FFFF" )then
                 if( PpiPortA(7 downto 6) = "00" )then
-                    if( Slot0Mode = '1' )then
-                        ExpSlot0 <= dbo;
-                    else
-                        ExpSlot0 <= (others => '0');
-                    end if;
+                    ExpSlot0 <= dbo;
                 end if;
             end if;
         end if;
@@ -1961,14 +1951,13 @@ begin
     -- Address Decode for CPU
     ----------------------------------------------------------------
     -- Slot0-X
-    rom_main    <=  mem when( (w_prislt_dec(0) and (w_expslt0_dec(0) or (not Slot0Mode)) and (w_page_dec(0) or w_page_dec(1))) = '1'            )else   -- 0-0 (0000-7FFFh)    32 KB  MSX2P   .ROM / MSXTR   .ROM
+    rom_main    <=  mem when( (w_prislt_dec(0) and w_expslt0_dec(0) and (w_page_dec(0) or w_page_dec(1))) = '1'                                 )else   -- 0-0 (0000-7FFFh)    32 KB  MSX2P   .ROM / MSXTR   .ROM
                     '0';
-    iSltMap0    <=  mem when( (w_prislt_dec(0) and w_expslt0_dec(1) and Slot0Mode and iSlt0_1 ) = '1' and adr /= X"FFFF" and SdrSize /= "00"    )else   -- 0-1 (0000-FFFEh)  4096 KB  Extra-Mapper
+    iSltMap0    <=  mem when( (w_prislt_dec(0) and w_expslt0_dec(1) and iSlt0_1 ) = '1' and adr /= X"FFFF" and SdrSize /= "00"                  )else   -- 0-1 (0000-FFFEh)  4096 KB  Extra-Mapper
                     '0';
-    rom_opll    <=  mem when( (w_prislt_dec(0) and w_expslt0_dec(2) and Slot0Mode and w_page_dec(1)) = '1'                                      )else   -- 0-2 (4000-7FFFh)    16 KB  MSX2PMUS.ROM / MSXTRMUS.ROM
+    rom_opll    <=  mem when( (w_prislt_dec(0) and w_expslt0_dec(2) and w_page_dec(1)) = '1'                                                    )else   -- 0-2 (4000-7FFFh)    16 KB  MSX2PMUS.ROM / MSXTRMUS.ROM
                     '0';
-    rom_free    <=  mem when( (w_prislt_dec(0) and w_expslt0_dec(3) and Slot0Mode and w_page_dec(1)) = '1'                                      )else   -- 0-3 (4000-7FFFh)    16 KB  FREE16KB.ROM / MSXTROPT.ROM
-                    mem when( (w_prislt_dec(0) and cbios_mode and w_page_dec(2)) = '1'                                                          )else   -- 0   (8000-BFFFh)    16 KB  C-BIOS Logo ROM preallocated in Slot0-3 area
+    rom_free    <=  mem when( (w_prislt_dec(0) and w_expslt0_dec(3) and w_page_dec(1)) = '1'                                                    )else   -- 0-3 (4000-7FFFh)    16 KB  FREE16KB.ROM / MSXTROPT.ROM
                     '0';
     -- Slot1
     iSltScc1    <=  mem when( (w_prislt_dec(1) and (w_page_dec(1) or w_page_dec(2)) and (not iSlt1_linear)) = '1' and Scc1Type /= "00"          )else   -- 1   (4000-BFFFh)  2048 KB  ESE-SCC1
@@ -2002,7 +1991,7 @@ begin
     VdpReq      <=  req when( mem = '0' and adr(7 downto 2) = "100110"                                                  )else '0';  -- I/O:98-9Bh / VDP (V9938/V9958)
     PsgReq      <=  req when( mem = '0' and adr(7 downto 2) = "101000"                                                  )else '0';  -- I/O:A0-A3h / PSG (AY-3-8910)
     PpiReq      <=  req when( mem = '0' and adr(7 downto 2) = "101010"                                                  )else '0';  -- I/O:A8-ABh / PPI (8255)
-    OpllReq     <=  req when( mem = '0' and adr(7 downto 1) = "0111110" and (Slot0Mode = '1' or cbios_mode = '1')       )else '0';  -- I/O:7C-7Dh / OPLL (YM2413) (Slot0 Primary Mode allows an external OPLL, C-BIOS mode does not)
+    OpllReq     <=  req when( mem = '0' and adr(7 downto 1) = "0111110"                                                 )else '0';  -- I/O:7C-7Dh / OPLL (YM2413)
     KanReq      <=  req when( mem = '0' and adr(7 downto 2) = "110110"                                                  )else '0';  -- I/O:D8-DBh / Kanji-data
     RomReq      <=  req when( (rom_main or rom_opll or rom_extd or rom_xbas or rom_free or iSltLin1 or iSltLin2) = '1'  )else '0';
     MapReq      <=  req when( mem = '0' and adr(7 downto 2) = "111111"                                                  )else       -- I/O:FC-FFh / Memory-mapper
@@ -2957,7 +2946,6 @@ begin
             SdrSize         => SdrSize          ,
             bios_reload_ack => bios_reload_ack  ,
             Mapper0_req     => Mapper0_req      ,
-            Slot0_req       => Slot0_req        ,
 
             xmr_ena         => xmr_ena          ,
             SdrSizeAux      => SdrSizeAux       ,
@@ -2966,9 +2954,7 @@ begin
             spMaxSpr        => spMaxSpr         ,
             vga_int_field   => vga_int_field    ,
             low_scale_n     => low_scale_n      ,
-            cbios_mode      => cbios_mode       ,
             Mapper0_ack     => Mapper0_ack      ,
-            Slot0Mode       => Slot0Mode        ,
             safe_mode       => safe_mode        ,
             portF2_ena      => portF2_ena       ,
 
