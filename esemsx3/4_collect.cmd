@@ -5,7 +5,7 @@ set TIMEOUT=1
 set PROJECT=emsx_top
 set PARKING=fw
 set DEVICE1=1chipmsx
-set DEVICE2=zemmixneo
+set DEVICE2=onechipbook12
 if "%1"=="" color 1f&title COLLECT for %PROJECT%
 if exist %PROJECT%.pld.%DEVICE1% goto collect
 if exist %PROJECT%.pld.%DEVICE2% goto collect
