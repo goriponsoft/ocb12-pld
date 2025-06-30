@@ -47,7 +47,7 @@ library ieee;
 entity emsx_top is
     generic(
         use_wifi_g          : boolean := true;
-        use_midi_g          : boolean := true;
+        use_midi_g          : boolean := false;
         set_low_scanlines_g : boolean := true
     );
     port(
