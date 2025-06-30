@@ -635,21 +635,6 @@ architecture RTL of emsx_top is
         );
     end component;
 
-    component tr_pcm                                                            -- Added by t.hara, 2019/Nov/29th
-        port(
-            clk21m          : in    std_logic;
-            reset           : in    std_logic;
-            req             : in    std_logic;
-            ack             : out   std_logic;
-            wrt             : in    std_logic;
-            adr             : in    std_logic;
-            dbi             : out   std_logic_vector(  7 downto 0 );
-            dbo             : in    std_logic_vector(  7 downto 0 );
-            wave_in         : in    std_logic_vector(  7 downto 0 );
-            wave_out        : out   std_logic_vector(  7 downto 0 )
-        );
-    end component;
-
     -- Switched I/O ports
     signal  swio_req        : std_logic;
     signal  swio_dbi        : std_logic_vector(  7 downto 0 );
@@ -1014,12 +999,6 @@ architecture RTL of emsx_top is
     signal  portF4_req      : std_logic;
     signal  portF4_bit7     : std_logic;                                            -- 1=hard reset, 0=soft reset
 
-    -- turboR PCM device
-    signal  tr_pcm_req      : std_logic;
-    signal  tr_pcm_dbi      : std_logic_vector(  7 downto 0 );
-    signal  tr_pcm_wave_in  : std_logic_vector(  7 downto 0 );
-    signal  tr_pcm_wave_out : std_logic_vector(  7 downto 0 );
-
     -- Mixer
     signal  ff_prepsg       : std_logic_vector(  8 downto 0 );
     signal  ff_prescc       : std_logic_vector( 15 downto 0 );
@@ -1030,7 +1009,6 @@ architecture RTL of emsx_top is
     signal  ff_opll         : std_logic_vector( DACin'high + 2 downto DACin'low );
     signal  ff_psg_offset   : std_logic_vector( DACin'high + 2 downto DACin'low );
     signal  ff_scc_offset   : std_logic_vector( DACin'high + 2 downto DACin'low );
-    signal  ff_tr_pcm       : std_logic_vector( DACin'high + 2 downto DACin'low );
     signal  ff_pre_dacin    : std_logic_vector( DACin'high + 2 downto DACin'low );
     constant c_opll_offset  : std_logic_vector( DACin'high + 2 downto DACin'low ) := (ff_pre_dacin'high => '1', others => '0');
     constant c_opll_zero    : std_logic_vector( OpllAmp'range ) := (OpllAmp'high => '1', others => '0');
@@ -1682,8 +1660,6 @@ begin
                 dlydbi <= RtcDbi;
             elsif( mem = '0' and adr(  7 downto 1 ) = "1110011" and use_system_timer_g )then                -- System timer (S1990)
                 dlydbi <= systim_dbi;
-            elsif( mem = '0' and adr(  7 downto 1 ) = "1010010" )then                                       -- turboR PCM device
-                dlydbi <= tr_pcm_dbi;
             elsif( mem = '0' and adr(  7 downto 4 ) = "0100" and io40_n /= "11111111" )then                 -- Switched I/O ports
                 dlydbi <= swio_dbi;
             elsif( mem = '0' and adr(  7 downto 0 ) = "10100111" and portF4_mode = '1' )then                -- Pause R800 (read only)
@@ -2004,7 +1980,6 @@ begin
     swio_req    <=  req when( mem = '0' and adr(7 downto 4) = "0100"                                                    )else '0';  -- I/O:40-4Fh / Switched I/O ports
     portF2_req  <=  req when( mem = '0' and adr(7 downto 0) = "11110010" and portF2_ena = '1' and use_wifi_g            )else '0';  -- I/O:F2h    / F2 Device (ESP8266 BIOS)
     portF4_req  <=  req when( mem = '0' and adr(7 downto 0) = "11110100"                                                )else '0';  -- I/O:F4h    / F4 Device
-    tr_pcm_req  <=  req when( mem = '0' and adr(7 downto 1) = "1010010"                                                 )else '0';  -- I/O:A4-A5h / turboR PCM device
 
     BusDir  <=  '1' when( pSltAdr(7 downto 2) = "100110"                                        )else   -- I/O:98-9Bh / VDP (V9938/V9958)
                 '1' when( pSltAdr(7 downto 2) = "101000"                                        )else   -- I/O:A0-A3h / PSG (AY-3-8910)
@@ -2018,7 +1993,6 @@ begin
                 '1' when( pSltAdr(7 downto 0) = "10100111" and portF4_mode = '1'                )else   -- I/O:A7h    / Pause R800 (read only)
                 '1' when( pSltAdr(7 downto 0) = "11110010" and portF2_ena = '1' and use_wifi_g  )else   -- I/O:F2h    / F2 Device (ESP8266 BIOS)
                 '1' when( pSltAdr(7 downto 0) = "11110100"                                      )else   -- I/O:F4h    / F4 Device
-                '1' when( pSltAdr(7 downto 1) = "1010010"                                       )else   -- I/O:A4-A5h / turboR PCM device
                 '1' when( pSltAdr(7 downto 1) = "0000011" and use_wifi_g                        )else   -- I/O:06-07h / ESP
                 '1' when( pSltAdr(7 downto 0) = "11101001" and use_midi_g                       )else   -- I/O:E9h    / MIDI
                 '0';
@@ -2177,7 +2151,6 @@ begin
         variable c_Opll     : std_logic_vector(  3 downto  0 );     -- combine OpllVol and MstrVol
         variable chPsg      : std_logic_vector( ff_prepsg'range );
         variable chOpll     : std_logic_vector( ff_pre_dacin'range );
-        variable tr_pcm_vol : std_logic_vector(  2 downto  0 );
     begin
         if( clk21m'event and clk21m = '1' )then
 
@@ -2237,23 +2210,7 @@ begin
                 end if;
                 ff_opll <= c_opll_offset + (chOpll - chOpll( chOpll'high downto  3 ));
             end if;
-
-            -- amplitude ramp of the turboR PCM (mixer level equivalences: off, 4, 7 and 10 out of 13)
-            tr_pcm_vol  := MstrVol;
-            case tr_pcm_vol is
-                when "000" | "001"         =>
-                    ff_tr_pcm(             10 downto  0 ) <= tr_pcm_wave_out & "000";
-                    ff_tr_pcm( ff_tr_pcm'high downto 11 ) <= (others => tr_pcm_wave_out(7));
-                when "010" | "011" | "100" =>
-                    ff_tr_pcm(              9 downto  0 ) <= tr_pcm_wave_out(  7 downto  1 ) & "000";
-                    ff_tr_pcm( ff_tr_pcm'high downto 10 ) <= (others => tr_pcm_wave_out(7));
-                when "101" | "110"         =>
-                    ff_tr_pcm(              8 downto  0 ) <= tr_pcm_wave_out(  7 downto  2 ) & "000";
-                    ff_tr_pcm( ff_tr_pcm'high downto  9 ) <= (others => tr_pcm_wave_out(7));
-                when others                =>
-                    ff_tr_pcm                             <= (others => tr_pcm_wave_out(7));
-            end case;
-        end if;
+       end if;
     end process;
 
     process( clk21m )
@@ -2261,7 +2218,7 @@ begin
         if( clk21m'event and clk21m = '1' )then
 
             -- ff_pre_dacin assignment
-            ff_pre_dacin <= (not ff_psg) + ff_scc + ff_opll + ff_tr_pcm;
+            ff_pre_dacin <= (not ff_psg) + ff_scc + ff_opll;
 
             -- amplitude limiter
             case ff_pre_dacin( ff_pre_dacin'high downto ff_pre_dacin'high - 2 ) is
@@ -2984,12 +2941,6 @@ begin
             full_reset_comb => full_reset_comb  ,
             cold_reset_comb => cold_reset_comb
         );
-
-    U40 : tr_pcm
-        port map(clk21m, reset, tr_pcm_req, open, wrt, adr(0), tr_pcm_dbi, dbo,
-                        tr_pcm_wave_in, tr_pcm_wave_out);
-
-    tr_pcm_wave_in <= (others => '0');
 
     wifi : if use_wifi_g generate
         uwifi : work.wifi
