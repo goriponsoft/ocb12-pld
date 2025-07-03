@@ -537,7 +537,7 @@ architecture RTL of emsx_top is
             io43_id212      : inout std_logic_vector(  7 downto 0 );            -- $43 ID212 states         :   Lock Mask for port $42 functions, CMT and System Reset
             io44_id212      : inout std_logic_vector(  7 downto 0 );            -- $44 ID212 states         :   Lights Mask has the green leds control when Lights Mode is On
 
-            DisplayMode     : inout std_logic_vector(  1 downto 0 );
+            ff_display_mode : inout std_logic_vector(  1 downto 0 );
 
             PsgVol          : inout std_logic_vector(  2 downto 0 );            -- PSG Volume
             MstrVol         : inout std_logic_vector(  2 downto 0 );            -- Master Volume
@@ -667,7 +667,7 @@ architecture RTL of emsx_top is
     signal  low_scale_n     : std_logic;
     signal  Mapper0_ack     : std_logic;
     signal  safe_mode       : std_logic := '0';
-    signal  ff_dip_req      : std_logic_vector(  7 downto 0 ) := "10000001";        -- overwrites any startup errors with the most common settings
+    signal  ff_dip_req      : std_logic_vector(  7 downto 0 ) := "10000011";        -- overwrites any startup errors with the most common settings
     signal  ff_dip_ack      : std_logic_vector(  7 downto 0 );
     signal  vram_slot_ids   : std_logic_vector(  7 downto 0 ) := "00010000";
     signal  vram_page       : std_logic_vector(  7 downto 0 );
@@ -686,6 +686,7 @@ architecture RTL of emsx_top is
     signal  w_key_mode      : std_logic;                                            -- Kana keyboard layout: 1=JIS layout (PSG)
     signal  Kmap            : std_logic;                                            -- '0': Japanese-106    '1': Non-Japanese (English-101, French, ..)
     signal  DisplayMode     : std_logic_vector(  1 downto 0 ) := "10";
+    signal  ff_display_mode : std_logic_vector(  1 downto 0 );
     signal  odd_line_s      : std_logic := '0';
     signal  Slot1Mode       : std_logic;
     signal  Slot2Mode       : std_logic_vector(  1 downto 0 );
@@ -2076,6 +2077,8 @@ begin
     begin
         if( VideoVS_n = '0' )then
             odd_line_s <= '0';
+            DisplayMode(0) <= ff_display_mode(1);
+            DisplayMode(1) <= ff_display_mode(0);
         elsif( VideoHS_n'event and VideoHS_n = '1' )then
             odd_line_s <= not odd_line_s;
         end if;
@@ -2820,7 +2823,7 @@ begin
             io43_id212      => io43_id212       ,
             io44_id212      => io44_id212       ,
 
-            DisplayMode     => DisplayMode      ,
+            ff_display_mode => ff_display_mode  ,
 
             PsgVol          => PsgVol           ,
             MstrVol         => MstrVol          ,
