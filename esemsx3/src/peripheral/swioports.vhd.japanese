@@ -662,18 +662,8 @@ begin
                             when "00011100" =>                                  -- VDP Speed Mode is Fast (TH9958 only)
                                 VdpSpeedMode    <=  V9938_n;
                             -- SMART CODES  #029, #030
-                            when "00011101" =>                                  -- MegaSD Off (warm reset to go)
-                                MegaSD_req      <=  '0';
-                                if( ff_ldbios_n = '0' )then                     -- MegaSD Off (ready to go) [Reserved for IPL-ROM]
-                                    io42_id212(7)   <=  '0';
-                                    MegaSD_ack      <=  '0';
-                                end if;
-                            when "00011110" =>                                  -- MegaSD On (warm reset to go)
-                                MegaSD_req      <=  '1';
-                                if( ff_ldbios_n = '0' )then                     -- MegaSD On (ready to go) [Reserved for IPL-ROM]
-                                    io42_id212(7)   <=  '1';
-                                    MegaSD_ack      <=  '1';
-                                end if;
+                            when "00011101" | "00011110" =>                     -- Null Command (deleted on this machine)
+                                null;
                             -- SMART CODES  #031, #032, #033, #034, #035
                             when "00011111" =>                                  -- MegaSD Blink Off + DIP-SW8 State On
                                 Blink_ena       <=  '0';
@@ -900,11 +890,9 @@ begin
                                 iSlt2_linear    <=  '0';
                             when "10000110" =>                                  -- Internal Slot2 Linear On (requires SCC-I or ASCII-8K/16K preset)
                                 iSlt2_linear    <=  io42_id212(4) or io42_id212(5);
---                          -- SMART CODES  #135, #136 (not available on this machine)
---                          when "10000111" =>
---                              swioCmt         <=  '0';                        -- Internal OPL3 Off (default)
---                          when "10001000" =>
---                              swioCmt         <=  '1';                        -- Internal OPL3 On
+--                          -- SMART CODES  #135, #136
+--                          when "10000111" | "10001000" =>                     -- Null Command (deleted on thid machine)
+--                              null;
                             -- SMART CODES  #137, #138
                             when "10001001" =>
                                 if( use_wifi_g )then
