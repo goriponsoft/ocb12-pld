@@ -1021,29 +1021,9 @@ begin
                                     bios_reload_ack <=  bios_reload_req;
                                     swioRESET_n     <=  '0';
                                 end if;
-                            when "11111100" =>                                  -- Mapper 2048 KB   + Warm Reset (audio volume will not be reset)
-                                Mapper_req      <=  '0';
-                                if( ff_ldbios_n = '0' )then                     -- Mapper 2048 KB (ready to go) [Reserved for IPL-ROM]
-                                    io42_id212(6)   <=  '0';
-                                    Mapper_ack      <=  '0';
-                                else                                            -- Warm Reset [No effect via IPL-ROM]
-                                    warmRESET       <=  '1';
-                                    bios_reload_ack <=  bios_reload_req;
-                                    swioRESET_n     <=  '0';
-                                end if;
-                            when "11111101" =>                                  -- Warm Reset (audio volume will not be reset)
+                            when "11111100" | "11111101" | "11111110" =>        -- Warm Reset (audio volume will not be reset)
                                 if( ff_ldbios_n = '0' )then
                                     null;
-                                else                                            -- Warm Reset [No effect via IPL-ROM]
-                                    warmRESET       <=  '1';
-                                    bios_reload_ack <=  bios_reload_req;
-                                    swioRESET_n     <=  '0';
-                                end if;
-                            when "11111110" =>                                  -- Mapper 4096 KB   + Warm Reset (audio volume will not be reset)
-                                Mapper_req      <=  '1';
-                                if( ff_ldbios_n = '0' )then                     -- Mapper 4096 KB (ready to go) [Reserved for IPL-ROM]
-                                    io42_id212(6)   <=  '1';
-                                    Mapper_ack      <=  '1';
                                 else                                            -- Warm Reset [No effect via IPL-ROM]
                                     warmRESET       <=  '1';
                                     bios_reload_ack <=  bios_reload_req;
