@@ -536,6 +536,8 @@ architecture RTL of emsx_top is
             io43_id212      : inout std_logic_vector(  7 downto 0 );            -- $43 ID212 states         :   Lock Mask for port $42 functions, CMT and System Reset
             io44_id212      : inout std_logic_vector(  7 downto 0 );            -- $44 ID212 states         :   Lights Mask has the green leds control when Lights Mode is On
 
+            DisplayMode     : inout std_logic_vector(  1 downto 0 );
+
             PsgVol          : inout std_logic_vector(  2 downto 0 );            -- PSG Volume
             MstrVol         : inout std_logic_vector(  2 downto 0 );            -- Master Volume
             OpllVol         : inout std_logic_vector(  2 downto 0 );            -- OPLL Volume
@@ -664,7 +666,7 @@ architecture RTL of emsx_top is
     signal  low_scale_n     : std_logic;
     signal  Mapper0_ack     : std_logic;
     signal  safe_mode       : std_logic := '0';
-    signal  ff_dip_req      : std_logic_vector(  7 downto 0 ) := "10000011";        -- overwrites any startup errors with the most common settings
+    signal  ff_dip_req      : std_logic_vector(  7 downto 0 ) := "10000001";        -- overwrites any startup errors with the most common settings
     signal  ff_dip_ack      : std_logic_vector(  7 downto 0 );
     signal  vram_slot_ids   : std_logic_vector(  7 downto 0 ) := "00010000";
     signal  vram_page       : std_logic_vector(  7 downto 0 );
@@ -1174,8 +1176,6 @@ begin
         if( clk21m'event and clk21m = '1' )then
             Kmap            <=  swioKmap;                                               -- keyboard layout assignment
             CmtScro         <=  swioCmt;
-            DisplayMode(1)  <=  io42_id212(1);
-            DisplayMode(0)  <=  io42_id212(2);
             Slot1Mode       <=  io42_id212(3);
             Slot2Mode(1)    <=  io42_id212(4);
             Slot2Mode(0)    <=  io42_id212(5);
@@ -2820,6 +2820,8 @@ begin
             io42_id212      => io42_id212       ,
             io43_id212      => io43_id212       ,
             io44_id212      => io44_id212       ,
+
+            DisplayMode     => DisplayMode      ,
 
             PsgVol          => PsgVol           ,
             MstrVol         => MstrVol          ,

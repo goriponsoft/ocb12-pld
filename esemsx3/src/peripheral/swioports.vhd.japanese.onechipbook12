@@ -56,6 +56,8 @@ entity switched_io_ports is
         io43_id212      : inout std_logic_vector(  7 downto 0 );            -- $43 ID212 states         :   Lock Mask for port $42 functions, CMT and System Reset
         io44_id212      : inout std_logic_vector(  7 downto 0 );            -- $44 ID212 states         :   Lights Mask has the green leds control when Lights Mode is On
 
+        DisplayMode     : inout std_logic_vector(  1 downto 0 );
+
         PsgVol          : inout std_logic_vector(  2 downto 0 );            -- PSG Volume
         MstrVol         : inout std_logic_vector(  2 downto 0 );            -- Master Volume
         OpllVol         : inout std_logic_vector(  2 downto 0 );            -- OPLL Volume
@@ -237,7 +239,8 @@ begin
     process( power_on_reset, clk21m )
     begin
         if( power_on_reset = '0' )then
-            VDP_ID <= "00010";                              -- Default VDP ID
+            VDP_ID      <= "00010";                         -- Default VDP ID
+            DisplayMode <= "10";                            -- Display Mode
         elsif( clk21m'event and clk21m = '1' )then
             if( reset = '1' )then
 
@@ -337,13 +340,13 @@ begin
                             ff_dip_ack(0)   <=  ff_dip_req(0);
                         end if;
                     end if;
-                    if( ff_dip_req(1) /= ff_dip_ack(1) )then                    -- DIP-SW2      is  DISPLAY(A) state
+                    if( ff_dip_req(1) /= ff_dip_ack(1) )then                    -- DIP-SW2      is  No function (deleted on this machine)
                         if( io43_id212(1) = '0' )then                           -- BIT[1]=0     of  Lock Mask
                             io42_id212(1)   <=  ff_dip_req(1);
                             ff_dip_ack(1)   <=  ff_dip_req(1);
                         end if;
                     end if;
-                    if( ff_dip_req(2) /= ff_dip_ack(2) )then                    -- DIP-SW3      is  DISPLAY(B) state
+                    if( ff_dip_req(2) /= ff_dip_ack(2) )then                    -- DIP-SW3      is  No function (deleted on this machine)
                         if( io43_id212(1) = '0' )then                           -- BIT[1]=0     of  Lock Mask
                             io42_id212(2)   <=  ff_dip_req(2);
                             ff_dip_ack(2)   <=  ff_dip_req(2);
@@ -422,11 +425,11 @@ begin
                         end if;
                         if( io43_id212(1) = '0' )then                           -- BIT[1]=0     of  Lock Mask
                             if( ff_Reso /= Reso )then                           -- PRTSCR       is  DISPLAY selector (next)
-                                case io42_id212(2 downto 1) is
-                                    when "00"   =>  io42_id212(2)           <=  '1';    --  Y/C     to  RGB
-                                    when "10"   =>  io42_id212(2 downto 1)  <=  "01";   --  RGB     to  VGA
-                                    when "01"   =>  io42_id212(2)           <=  '1';    --  VGA     to  VGA+
-                                    when "11"   =>  io42_id212(2 downto 1)  <=  "00";   --  VGA+    to  Y/C
+                                case DisplayMode(1 downto 0) is
+                                    when "00"   =>  DisplayMode(0)           <=  '1';    --  Y/C     to  RGB
+                                    when "01"   =>  DisplayMode(1 downto 0)  <=  "10";   --  RGB     to  VGA
+                                    when "10"   =>  DisplayMode(0)           <=  '1';    --  VGA     to  VGA+
+                                    when "11"   =>  DisplayMode(1 downto 0)  <=  "00";   --  VGA+    to  Y/C
                                 end case;
                             end if;
                         end if;
@@ -489,11 +492,11 @@ begin
                         end if;
                         if( io43_id212(1) = '0' )then                           -- BIT[1]=0     of  Lock Mask
                             if( ff_Reso /= Reso )then                           -- SHIFT+PRTSCR is  DISPLAY selector (previous)
-                                case io42_id212(2 downto 1) is
-                                    when "11"   =>  io42_id212(2)           <=  '0';    --  VGA+    to  VGA
-                                    when "01"   =>  io42_id212(2 downto 1)  <=  "10";   --  VGA     to  RGB
-                                    when "10"   =>  io42_id212(2)           <=  '0';    --  RGB     to  Y/C
-                                    when "00"   =>  io42_id212(2 downto 1)  <=  "11";   --  Y/C     to  VGA+
+                                case DisplayMode(1 downto 0) is
+                                    when "11"   =>  DisplayMode(0)           <=  '0';    --  VGA+    to  VGA
+                                    when "10"   =>  DisplayMode(1 downto 0)  <=  "10";   --  VGA     to  RGB
+                                    when "01"   =>  DisplayMode(0)           <=  '0';    --  RGB     to  Y/C
+                                    when "00"   =>  DisplayMode(1 downto 0)  <=  "11";   --  Y/C     to  VGA+
                                 end case;
                             end if;
                         end if;
@@ -646,13 +649,13 @@ begin
                                 swioKmap        <=  '1';
                             -- SMART CODES  #023, #024, #025, #026
                             when "00010111" =>                                  -- Display Mode 15kHz Composite or S-Video
-                                io42_id212(2 downto 1)  <=  "00";
+                                DisplayMode(1 downto 0)  <=  "00";
                             when "00011000" =>                                  -- Display Mode 15kHz RGB + Audio (Mono)
-                                io42_id212(2 downto 1)  <=  "10";
+                                DisplayMode(1 downto 0)  <=  "01";
                             when "00011001" =>                                  -- Display Mode 31kHz VGA for LED TV or LED Display (50Hz+60Hz)
-                                io42_id212(2 downto 1)  <=  "01";
+                                DisplayMode(1 downto 0)  <=  "10";
                             when "00011010" =>                                  -- Display Mode 31kHz VGA+ for CRT Monitor (legacy output) (50Hz+60Hz)
-                                io42_id212(2 downto 1)  <=  "11";
+                                DisplayMode(1 downto 0)  <=  "11";
                             -- SMART CODES  #027, #028
                             when "00011011" =>                                  -- VDP Speed Mode is Normal (default)
                                 VdpSpeedMode    <=  '0';
@@ -1020,7 +1023,7 @@ begin
                             when "11111000" =>                                  -- OCM-BIOS Reloading (cold reset or warm reset to go)
                                 bios_reload_req <=  '1';
                             -- SMART CODE   #249, #250
-                            when "11111001" | "11111010" =>                     -- Null Command (Deleted this machine)
+                            when "11111001" | "11111010" =>                     -- Null Command (deleted this machine)
                                 null;
                             -- SMART CODES  #251, #252, #253, #254
                             when "11111011" =>                                  -- Cold Reset (audio volume will be reset)
