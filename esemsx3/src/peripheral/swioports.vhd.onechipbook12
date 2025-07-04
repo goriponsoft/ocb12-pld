@@ -97,7 +97,6 @@ entity switched_io_ports is
 
         btn_scan        : in    std_logic;                                  -- Scanlines button
         vga_scanlines   : inout std_logic_vector(  1 downto 0 );            -- VGA Scanlines None, Light, Medium or Heavy (default is None)
-        iPsg2_ena       : inout std_logic;                                  -- Internal PSG2 enabler
         SdrSize         : in    std_logic_vector(  1 downto 0 );            -- SDRAM size ID 0-3
         bios_reload_ack : out   std_logic;                                  -- OCM-BIOS Reloading ack
         Mapper0_req     : inout std_logic;                                  -- Extra-Mapper req         :   Warm Reset is required to complete the request
@@ -205,7 +204,7 @@ begin
                 when( (adr(3 downto 0) = "1010") and (io40_n = "00101011") )else
 --  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             -- $4B ID212 [Dynamic Port 4B d-ID $00], if $44 ID212 equ #000 states as below => read only
-            '1' & Mapper0_req & bios_reload_req & SdrSize & iPsg2_ena & vga_scanlines
+            '1' & Mapper0_req & bios_reload_req & SdrSize & '0' & vga_scanlines
                 when( (adr(3 downto 0) = "1011") and (io40_n = "00101011") and (io44_id212 = "00000000") )else
             -- $4B ID212 [Dynamic Port 4B d-ID $01], if $44 ID212 equ #001 states as below => read only
             std_logic_vector(OFFSET_Y - 12)(3 downto 0) & SdrSizeAux & xmr_ena
@@ -285,7 +284,6 @@ begin
                     legacy_sel      <=  '1';                -- Legacy Output is assigned to VGA+
                     iSlt1_linear    <=  '0';                -- Internal Slot1 Linear is Off
                     iSlt2_linear    <=  '0';                -- Internal Slot2 Linear is Off
-                    iPsg2_ena       <=  '0';                -- Internal PSG2 is Off
                     Mapper0_req     <=  '0';                -- Set Extra-Mapper state is Off
                     xmr_ena         <=  '0';                -- Extended MegaROM Reading is Off
                     OFFSET_Y        <=  "0010011";          -- Default Vertical Offset
@@ -767,11 +765,9 @@ begin
                                 vga_scanlines   <=  "10";
                             when "01010011" =>                                  -- VGA Scanlines Heavy
                                 vga_scanlines   <=  "11";
---                          -- SMART CODES  #084, #085 (not available on this machine)
---                          when "01010100" =>                                  -- Internal PSG2 Off (default)
---                              iPsg2_ena       <=  '0';
---                          when "01010101" =>                                  -- Internal PSG2 On (this second PSG acts as an external PSG)
---                              iPsg2_ena       <=  '1';
+                            -- SMART CODES  #084, #085
+                            when "01010100" | "01010101" =>                     -- Null Commands (deleted on this machine)
+                                null;
                             -- SMART CODES  #086, #087
                             when "01010110" =>                                  -- Extra-Mapper 4096 KB Off (warm reset to go) (default)
                                 if( SdrSize /= "00" )then
@@ -1007,7 +1003,6 @@ begin
                                 iSlt1_linear            <=  '0';
                                 iSlt2_linear            <=  '0';
                                 vga_scanlines           <=  "00";
-                                iPsg2_ena               <=  '0';
                                 Mapper0_req             <=  '0';
                                 xmr_ena                 <=  '0';
                                 OFFSET_Y                <=  "0010011";
