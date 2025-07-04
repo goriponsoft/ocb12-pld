@@ -524,23 +524,6 @@ begin
                                 end if;
                             end if;
                         end if;
-                        if( io43_id212(3) = '0' and Fkeys(6) = '0' )then        -- BIT[3]=0     of  Lock Mask   +   LCTRL key   is Off
-                            if( Fkeys(0) /= vFKeys(0) )then                     -- SHIFT+F12    is  SLOT1 selector
-                                io42_id212(3)   <=  not io42_id212(3);
-                                iSlt1_linear    <=  '0';
-                            end if;                                             -- EXTERNAL SLOT1   >> <<   INTERNAL SCC-I(A)
-                        end if;
-                        if( io43_id212(4) = '0' )then                           -- BIT[4]=0     of  Lock Mask
-                            if( ff_Scro /= Scro )then                           -- SHIFT+SCRLK  is  SLOT2 selector
-                                case io42_id212(5 downto 4) is
-                                    when "00"   =>  io42_id212(5)           <=  '1';    --  EXTERNAL SLOT2      to  INTERNAL ASCII 8K
-                                    when "10"   =>  io42_id212(5 downto 4)  <=  "01";   --  INTERNAL ASCII 8K   to  INTERNAL SCC-I(B)
-                                    when "01"   =>  io42_id212(5)           <=  '1';    --  INTERNAL SCC-I(B)   to  INTERNAL ASCII 16K
-                                    when "11"   =>  io42_id212(5 downto 4)  <=  "00";   --  INTERNAL ASCII 16K  to  EXTERNAL SLOT2
-                                end case;
-                                iSlt2_linear    <=  '0';
-                            end if;                                             -- Hint! You can get SCC-I(B) quickly with a SHIFT+'double'SCRLK
-                        end if;
                     end if;
                     -- in assignment: 'Port $40 [ID Manufacturers/Devices]' (read_n/write)
                     if( req = '1' and wrt = '1' and (adr(3 downto 0) = "0000") )then
@@ -610,38 +593,8 @@ begin
                             when "00001100" =>                                  -- Turbo MegaSD     On  (default)
                                 tMegaSD         <=  '1';
                             -- SMART CODES  #013, #014, #015, #016, #017, #018, #19, #20
-                            when "00001101" =>                                  -- Ext. Slot1       + Ext. Slot2
-                                io42_id212(5 downto 3)  <=  "000";
-                                iSlt1_linear            <=  '0';
-                                iSlt2_linear            <=  '0';
-                            when "00001110" =>                                  -- Int. SCC-I Slot1 + Ext. Slot2
-                                io42_id212(5 downto 3)  <=  "001";
-                                iSlt1_linear            <=  '0';
-                                iSlt2_linear            <=  '0';
-                            when "00001111" =>                                  -- Ext. Slot1       + Int. SCC-I Slot2
-                                io42_id212(5 downto 3)  <=  "010";
-                                iSlt1_linear            <=  '0';
-                                iSlt2_linear            <=  '0';
-                            when "00010000" =>                                  -- Int. SCC-I Slot1 + Int. SCC-I Slot2
-                                io42_id212(5 downto 3)  <=  "011";
-                                iSlt1_linear            <=  '0';
-                                iSlt2_linear            <=  '0';
-                            when "00010001" =>                                  -- Ext. Slot1       + Int. ASCII8K Slot2
-                                io42_id212(5 downto 3)  <=  "100";
-                                iSlt1_linear            <=  '0';
-                                iSlt2_linear            <=  '0';
-                            when "00010010" =>                                  -- Int. SCC-I Slot1 + Int. ASCII8K Slot2
-                                io42_id212(5 downto 3)  <=  "101";
-                                iSlt1_linear            <=  '0';
-                                iSlt2_linear            <=  '0';
-                            when "00010011" =>                                  -- Ext. Slot1       + Int. ASCII16K Slot2
-                                io42_id212(5 downto 3)  <=  "110";
-                                iSlt1_linear            <=  '0';
-                                iSlt2_linear            <=  '0';
-                            when "00010100" =>                                  -- Int. SCC-I Slot1 + Int. ASCII16K Slot2
-                                io42_id212(5 downto 3)  <=  "111";
-                                iSlt1_linear            <=  '0';
-                                iSlt2_linear            <=  '0';
+                            when "00001101" | "00001110" | "00001111" | "00010000"| "00010001"| "00010010" | "00010011"| "00010100" =>
+                                null;                                           -- Null Commands (deleted on this machine)
                             -- SMART CODES  #021, #022
                             when "00010101" =>                                  -- Japanese Keyboard Layout
                                 swioKmap        <=  '0';
@@ -662,7 +615,7 @@ begin
                             when "00011100" =>                                  -- VDP Speed Mode is Fast (TH9958 only)
                                 VdpSpeedMode    <=  V9938_n;
                             -- SMART CODES  #029, #030
-                            when "00011101" | "00011110" =>                     -- Null Command (deleted on this machine)
+                            when "00011101" | "00011110" =>                     -- Null Commands (deleted on this machine)
                                 null;
                             -- SMART CODES  #031, #032, #033, #034, #035
                             when "00011111" =>                                  -- MegaSD Blink Off + DIP-SW8 State On
