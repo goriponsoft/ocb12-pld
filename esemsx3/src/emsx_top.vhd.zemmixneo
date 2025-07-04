@@ -603,7 +603,6 @@ architecture RTL of emsx_top is
             ff_ldbios_n     : in    std_logic;                                  -- OCM-BIOS loading status
             VDP_ID          : out   std_logic_vector(  4 downto 0 );            -- VDP ID 0 (V9938) or VDP ID 2 (V9958)
             JIS2_ena        : inout std_logic;                                  -- JIS2 enabler             :   0=JIS1 only (BIOS 384 KB), 1=JIS1+JIS2 (BIOS 512 KB)
-            portF4_mode     : inout std_logic;                                  -- F4 Device Mode           :   0=Inverted (MSX2+), 1=Normal (MSXtR)
 
             Scro            : in    std_logic;
             ff_Scro         : in    std_logic;
@@ -673,7 +672,6 @@ architecture RTL of emsx_top is
     signal  vram_page       : std_logic_vector(  7 downto 0 );
     signal  DefKmap         : std_logic;
     signal  JIS2_ena        : std_logic;
-    signal  portF4_mode     : std_logic;
     signal  LevCtrl         : std_logic_vector(  2 downto 0 );
     signal  GreenLvEna      : std_logic;
     signal  swioRESET_n     : std_logic := '1';
@@ -1126,7 +1124,7 @@ begin
             logo_timeout <= "00";
         elsif( clk21m'event and clk21m = '1' )then
             if( ff_ldbios_n = '0' )then                                                 -- times change depending on the mappers installed
-                if( LastRst_sta = portF4_mode )then
+                if( LastRst_sta = '0' )then
                     LogoRstCnt <= "110000";                                             -- 4800ms : OCM-BIOS begins
                 end if;
             elsif( w_10hz = '1' and LogoRstCnt /= "000000" )then
@@ -1644,8 +1642,6 @@ begin
                 dlydbi <= swio_dbi;
             elsif( mem = '0' and adr(  7 downto 0 ) = "11110010" and portF2_ena = '1' and use_wifi_g )then  -- F2 Device (ESP8266 BIOS)
                 dlydbi <= portF2;
-            elsif( mem = '0' and adr(  7 downto 0 ) = "11110100" and portF4_mode = '1' )then                -- F4 Device normal (Z80 mode)
-                dlydbi <= portF4_bit7 & "0000000";
             elsif( mem = '0' and adr(  7 downto 0 ) = "11110100" )then                                      -- F4 Device inverted
                 dlydbi <= portF4_bit7 & "1111111";
             elsif( mem = '0' and adr(  7 downto 1 ) = "0000011" and use_wifi_g )then                        -- ESP ports 06-07h
@@ -2209,7 +2205,7 @@ begin
 
     -- left audio channel
     pDac_SL <= null                                         when( power_on_reset = '0' )else
-               "ZZZZZZ"                                     when( pseudoStereo = '1' and (CmtScro = '0' or portF4_mode = '1') )else
+               "ZZZZZZ"                                     when( pseudoStereo = '1' and CmtScro = '0' )else
                DACout & "ZZZZ" & DACout;                    -- multiple DACout lines are used to balance the audio cartridges on Cyclone I machines
 
     -- Cassette Magnetic Tape (CMT) interface / right audio channel
@@ -2217,7 +2213,7 @@ begin
     begin
         if( clk21m'event and clk21m = '1' )then
             if( power_on_reset = '1' )then
-                if( CmtScro = '1' and portF4_mode = '0' )then
+                if( CmtScro = '1' )then
                     pDac_SR(5 downto 4) <= "ZZ";
                     pDac_SR(3 downto 1) <= CmtIn & (not CmtIn) & "0";
                     pDac_SR(0)          <= CmtOut;
@@ -2652,7 +2648,7 @@ begin
     U01 : t80a
         port map(
             RESET_n     => not reset    ,
-            R800_mode   => '0'          ,   -- '0' => no MULU, '1' => MULU with LEs, portF4_mode = auto selection with LEs
+            R800_mode   => '0'          ,   -- '0' => no MULU, '1' => MULU with LEs
             CLK_n       => iCpuClk      ,
             WAIT_n      => wait_n_s     ,
             INT_n       => pSltInt_n    ,
@@ -2889,7 +2885,6 @@ begin
             ff_ldbios_n     => ff_ldbios_n      ,
             VDP_ID          => VDP_ID           ,
             JIS2_ena        => JIS2_ena         ,
-            portF4_mode     => portF4_mode      ,
 
             Scro            => Scro             ,
             ff_Scro         => ff_Scro          ,

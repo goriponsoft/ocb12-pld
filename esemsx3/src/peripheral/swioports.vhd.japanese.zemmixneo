@@ -122,7 +122,6 @@ entity switched_io_ports is
         ff_ldbios_n     : in    std_logic;                                  -- OCM-BIOS loading status
         VDP_ID          : out   std_logic_vector(  4 downto 0 );            -- VDP ID 0 (V9938) or VDP ID 2 (V9958)
         JIS2_ena        : inout std_logic;                                  -- JIS2 enabler             :   0=JIS1 only (BIOS 384 KB), 1=JIS1+JIS2 (BIOS 512 KB)
-        portF4_mode     : inout std_logic;                                  -- F4 Device Mode           :   0=Inverted (MSX2+), 1=Normal (MSXtR)
 
         Scro            : in    std_logic;
         ff_Scro         : in    std_logic;
@@ -274,7 +273,7 @@ begin
                     swioCmt         <=  '0';                -- CMT is Off
                     LightsMode      <=  '0';                -- Lights Mode is Auto
                     Red_sta         <=  not io41_id008_n;   -- Red Led is Turbo 5.37MHz
-                    LastRst_sta     <=  portF4_mode;        -- F4 Cold Reset state
+                    LastRst_sta     <=  '0';                -- F4 Cold Reset state
                     LastRst_ack     <=  '0';                -- Cold Reset ack
                     Blink_ena       <=  '1';                -- MegaSD Blink is On
                     pseudoStereo    <=  '0';                -- Pseudo-Stereo is Off
@@ -312,7 +311,7 @@ begin
 
             else
                 if( warmRESET /= '0' )then
-                    WarmMSXlogo <=  portF4_mode;            -- MSX logo will be Off after a Warm Reset
+                    WarmMSXlogo <=  '0';                    -- MSX logo will be Off after a Warm Reset
                     warmRESET   <=  '0';                    -- End of Warm Reset cycle
                 else
                     -- in assignment: 'Green Level Enabler'
@@ -456,7 +455,7 @@ begin
                                     PsgVol  <= PsgVol + 1;
                                 end if;
                             end if;
-                            if( ff_Scro /= Scro and portF4_mode = '0' )then     -- SCRLK        is  CMT toggle
+                            if( ff_Scro /= Scro )then                           -- SCRLK        is  CMT toggle
                                 swioCmt     <= not swioCmt;
                             end if;
                         end if;
@@ -648,17 +647,9 @@ begin
                                 MstrVol         <=  "000";
                             -- SMART CODES  #039, #040
                             when "00100111" =>
-                                if( portF4_mode = '0' )then
-                                    swioCmt         <=  '0';                    -- CMT Off (default)
-                                else
-                                    io41_id212_n    <=  "11111111";             -- MSX turboR does not have CMT
-                                end if;
+                                swioCmt         <=  '0';                        -- CMT Off (default)
                             when "00101000" =>
-                                if( portF4_mode = '0' )then
-                                    swioCmt         <=  '1';                    -- CMT On
-                                else
-                                    io41_id212_n    <=  "11111111";             -- MSX turboR does not have CMT
-                                end if;
+                                swioCmt         <=  '1';                        -- CMT On
                             -- SMART CODES  #041, #042
                             when "00101001" =>                                  -- CPU Clock Locked
                                 io43_id212(0)   <=  '1';
@@ -821,7 +812,7 @@ begin
                                 if( ff_ldbios_n = '0' )then
                                     null;
                                 else                                            -- System Logo On [No effect via IPL-ROM]
-                                    WarmMSXlogo     <=  not portF4_mode;
+                                    WarmMSXlogo     <=  '1';
                                 end if;
                             -- SMART CODE   #127
                             when "01111111" =>                                  -- Pixel Ratio 1:1 for LED Display
@@ -1085,7 +1076,6 @@ begin
                     end if;
                     -- in assignment: 'Port $4F ID212 [F4 Device Mode] [Reserved for IPL-ROM]' (write_n only)
                     if( req = '1' and wrt = '1' and (adr(3 downto 0) = "1111")  and (io40_n = "00101011") and ff_ldbios_n = '0' )then
-                        portF4_mode         <=  not dbo(7);                     -- BIT[7]
                         WarmMSXlogo         <=  not dbo(7);                     -- MSX logo will be Off after a Warm Reset
                     end if;
                     -- in assignment: 'Scanlines button'
