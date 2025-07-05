@@ -577,7 +577,6 @@ architecture RTL of emsx_top is
 
             btn_scan        : in    std_logic;                                  -- Scanlines button
             vga_scanlines   : inout std_logic_vector(  1 downto 0 );            -- VGA Scanlines None, Light, Medium or Heavy (default is None)
-            iPsg2_ena       : inout std_logic;                                  -- Internal PSG2 enabler
             SdrSize         : in    std_logic_vector(  1 downto 0 );            -- SDRAM size ID 0-3
             bios_reload_ack : out   std_logic;                                  -- OCM-BIOS Reloading ack
             Mapper0_req     : inout std_logic;                                  -- Extra-Mapper req         :   Warm Reset is required to complete the request
@@ -658,7 +657,6 @@ architecture RTL of emsx_top is
     signal  iSlt2_linear    : std_logic;
     signal  btn_scan        : std_logic := '1';
     signal  vga_scanlines   : std_logic_vector(  1 downto 0 ) := "00";
-    signal  iPsg2_ena       : std_logic;
     signal  bios_reload_ack : std_logic := '0';
     signal  Mapper0_req     : std_logic;
     signal  xmr_ena         : std_logic;
@@ -2859,7 +2857,6 @@ begin
 
             btn_scan        => '1'              ,
             vga_scanlines   => vga_scanlines    ,
-            iPsg2_ena       => iPsg2_ena        ,
             SdrSize         => SdrSize          ,
             bios_reload_ack => bios_reload_ack  ,
             Mapper0_req     => Mapper0_req      ,
