@@ -56,7 +56,7 @@ entity switched_io_ports is
         io43_id212      : inout std_logic_vector(  7 downto 0 );            -- $43 ID212 states         :   Lock Mask for port $42 functions, CMT and System Reset
         io44_id212      : inout std_logic_vector(  7 downto 0 );            -- $44 ID212 states         :   Lights Mask has the green leds control when Lights Mode is On
 
-        ff_display_mode : inout std_logic_vector(  1 downto 0 );
+        display_mode_req : inout std_logic_vector(  1 downto 0 );
 
         PsgVol          : inout std_logic_vector(  2 downto 0 );            -- PSG Volume
         MstrVol         : inout std_logic_vector(  2 downto 0 );            -- Master Volume
@@ -233,7 +233,7 @@ begin
     begin
         if( power_on_reset = '0' )then
             VDP_ID <= "00010";                              -- Default VDP ID
-            ff_display_mode <= "00";
+            display_mode_req <= "00";
         elsif( clk21m'event and clk21m = '1' )then
             if( reset = '1' )then
 
@@ -415,11 +415,11 @@ begin
                         end if;
                         if( io43_id212(1) = '0' )then                           -- BIT[1]=0     of  Lock Mask
                             if( ff_Reso /= Reso )then                           -- PRTSCR       is  DISPLAY selector (next)
-                                case ff_display_mode(1 downto 0) is
-                                    when "00"   =>  ff_display_mode(1)           <=  '1';    --  Y/C     to  RGB
-                                    when "10"   =>  ff_display_mode(1 downto 0)  <=  "01";   --  RGB     to  VGA
-                                    when "01"   =>  ff_display_mode(1)           <=  '1';    --  VGA     to  VGA+
-                                    when "11"   =>  ff_display_mode(1 downto 0)  <=  "00";   --  VGA+    to  Y/C
+                                case display_mode_req(1 downto 0) is
+                                    when "00"   =>  display_mode_req(1)           <=  '1';    --  Y/C     to  RGB
+                                    when "10"   =>  display_mode_req(1 downto 0)  <=  "01";   --  RGB     to  VGA
+                                    when "01"   =>  display_mode_req(1)           <=  '1';    --  VGA     to  VGA+
+                                    when "11"   =>  display_mode_req(1 downto 0)  <=  "00";   --  VGA+    to  Y/C
                                 end case;
                             end if;
                         end if;
@@ -482,11 +482,11 @@ begin
                         end if;
                         if( io43_id212(1) = '0' )then                           -- BIT[1]=0     of  Lock Mask
                             if( ff_Reso /= Reso )then                           -- SHIFT+PRTSCR is  DISPLAY selector (previous)
-                                case ff_display_mode(1 downto 0) is
-                                    when "11"   =>  ff_display_mode(1)           <=  '0';    --  VGA+    to  VGA
-                                    when "01"   =>  ff_display_mode(1 downto 0)  <=  "10";   --  VGA     to  RGB
-                                    when "10"   =>  ff_display_mode(1)           <=  '0';    --  RGB     to  Y/C
-                                    when "00"   =>  ff_display_mode(1 downto 0)  <=  "11";   --  Y/C     to  VGA+
+                                case display_mode_req(1 downto 0) is
+                                    when "11"   =>  display_mode_req(1)           <=  '0';    --  VGA+    to  VGA
+                                    when "01"   =>  display_mode_req(1 downto 0)  <=  "10";   --  VGA     to  RGB
+                                    when "10"   =>  display_mode_req(1)           <=  '0';    --  RGB     to  Y/C
+                                    when "00"   =>  display_mode_req(1 downto 0)  <=  "11";   --  Y/C     to  VGA+
                                 end case;
                             end if;
                         end if;
@@ -592,13 +592,13 @@ begin
                                 swioKmap        <=  '1';
                             -- SMART CODES  #023, #024, #025, #026
                             when "00010111" =>                                  -- Display Mode 15kHz Composite or S-Video
-                                ff_display_mode(1 downto 0)  <=  "00";
+                                display_mode_req(1 downto 0)  <=  "00";
                             when "00011000" =>                                  -- Display Mode 15kHz RGB + Audio (Mono)
-                                ff_display_mode(1 downto 0)  <=  "10";
+                                display_mode_req(1 downto 0)  <=  "10";
                             when "00011001" =>                                  -- Display Mode 31kHz VGA for LED TV or LED Display (50Hz+60Hz)
-                                ff_display_mode(1 downto 0)  <=  "01";
+                                display_mode_req(1 downto 0)  <=  "01";
                             when "00011010" =>                                  -- Display Mode 31kHz VGA+ for CRT Monitor (legacy output) (50Hz+60Hz)
-                                ff_display_mode(1 downto 0)  <=  "11";
+                                display_mode_req(1 downto 0)  <=  "11";
                             -- SMART CODES  #027, #028
                             when "00011011" =>                                  -- VDP Speed Mode is Normal (default)
                                 VdpSpeedMode    <=  '0';
