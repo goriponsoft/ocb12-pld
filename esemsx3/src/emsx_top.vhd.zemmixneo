@@ -676,7 +676,7 @@ architecture RTL of emsx_top is
     -- Operation mode
     signal  w_key_mode      : std_logic;                                            -- Kana keyboard layout: 1=JIS layout (PSG)
     signal  Kmap            : std_logic;                                            -- '0': Japanese-106    '1': Non-Japanese (English-101, French, ..)
-    signal  DisplayMode     : std_logic_vector(  1 downto 0 ) := "10";
+    signal  DisplayMode     : std_logic_vector(  1 downto 0 ) := "00";
     signal  ff_display_mode : std_logic_vector(  1 downto 0 );
     signal  odd_line_s      : std_logic := '0';
     signal  Slot1Mode       : std_logic;

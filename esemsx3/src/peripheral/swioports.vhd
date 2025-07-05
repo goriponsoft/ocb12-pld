@@ -330,13 +330,13 @@ begin
                             ff_dip_ack(0)   <=  ff_dip_req(0);
                         end if;
                     end if;
-                    if( ff_dip_req(1) /= ff_dip_ack(1) )then                    -- DIP-SW2      is  DISPLAY(A) state
+                    if( ff_dip_req(1) /= ff_dip_ack(1) )then                    -- DIP-SW2      is  No function (deleted on this machine)
                         if( io43_id212(1) = '0' )then                           -- BIT[1]=0     of  Lock Mask
                             io42_id212(1)   <=  ff_dip_req(1);
                             ff_dip_ack(1)   <=  ff_dip_req(1);
                         end if;
                     end if;
-                    if( ff_dip_req(2) /= ff_dip_ack(2) )then                    -- DIP-SW3      is  DISPLAY(B) state
+                    if( ff_dip_req(2) /= ff_dip_ack(2) )then                    -- DIP-SW3      is  No function (deleted on this machine)
                         if( io43_id212(1) = '0' )then                           -- BIT[1]=0     of  Lock Mask
                             io42_id212(2)   <=  ff_dip_req(2);
                             ff_dip_ack(2)   <=  ff_dip_req(2);
