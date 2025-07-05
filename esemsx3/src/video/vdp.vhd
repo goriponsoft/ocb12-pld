@@ -315,7 +315,6 @@ ENTITY VDP IS
         PRAMDBO             : OUT   STD_LOGIC_VECTOR(  7 DOWNTO 0 );
 
         VDPSPEEDMODE        : IN    STD_LOGIC;
-        RATIOMODE           : IN    STD_LOGIC_VECTOR(  2 DOWNTO 0 );
         CENTERYJK_R25_N     : IN    STD_LOGIC;
 
         -- VIDEO OUTPUT
@@ -517,9 +516,7 @@ ARCHITECTURE RTL OF VDP IS
             VIDEOHSOUT_N        : OUT   STD_LOGIC;
             VIDEOVSOUT_N        : OUT   STD_LOGIC;
             -- HDMI SUPPORT
-            BLANK_O             : OUT   STD_LOGIC;
-            -- MISC
-            RATIOMODE           : IN    STD_LOGIC_VECTOR(  2 DOWNTO 0 )
+            BLANK_O             : OUT   STD_LOGIC
             );
     END COMPONENT;
 
@@ -1124,8 +1121,7 @@ BEGIN
         VIDEOBOUT           => IVIDEOB_VGA,
         VIDEOHSOUT_N        => IVIDEOHS_N_VGA,
         VIDEOVSOUT_N        => IVIDEOVS_N_VGA,
-        BLANK_O             => BLANK_O,
-        RATIOMODE           => RATIOMODE
+        BLANK_O             => BLANK_O
     );
 
     -- CHANGE DISPLAY MODE BY EXTERNAL INPUT PORT.
