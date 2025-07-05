@@ -89,7 +89,6 @@ entity switched_io_ports is
         forced_v_mode   : inout std_logic;                                  -- Forced Video Mode        :   0=60Hz, 1=50Hz
 
         right_inverse   : inout std_logic;                                  -- Right Inverse Audio      :   0=Off (normal wave), 1=On (inverse wave)
-        RatioMode       : inout std_logic_vector(  2 downto 0 );            -- Pixel Ratio 1:1 for LED Display (default is 0) (range 0-7) (60Hz only)
         centerYJK_R25_n : inout std_logic;                                  -- Centering YJK Modes/R25 Mask (0=centered, 1=shifted to the right)
         legacy_sel      : inout std_logic;                                  -- Legacy Output selector   :   0=Assigned to VGA, 1=Assigned to VGA+
         iSlt1_linear    : inout std_logic;                                  -- Internal Slot1 Linear    :   0=Disabled, 1=Enabled
@@ -200,7 +199,7 @@ begin
             forced_v_mode & ntsc_pal_type & MachineID & extclk3m & pseudoStereo
                 when( (adr(3 downto 0) = "1001") and (io40_n = "00101011") )else
             -- $4A ID212 states as below => read only
-            iSlt2_linear & iSlt1_linear & legacy_sel & not centerYJK_R25_n & (not RatioMode + 1) & right_inverse
+            iSlt2_linear & iSlt1_linear & legacy_sel & not centerYJK_R25_n & "000" & right_inverse
                 when( (adr(3 downto 0) = "1010") and (io40_n = "00101011") )else
 --  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             -- $4B ID212 [Dynamic Port 4B d-ID $00], if $44 ID212 equ #000 states as below => read only
@@ -244,7 +243,6 @@ begin
 
                 swioRESET_n     <=  '1';                    -- End of Reset pulse
 --              io40_n          <=  "11111111";             -- The reset of Port $40 is managed by IPL-ROM
-                RatioMode       <=  "000";                  -- Restore Pixel Ratio 1:1 for LED Display after each reboot
                 bios_reload_req <=  '0';                    -- OCM-BIOS Reloading is Off (default)
                 bios_reload_ack <=  '0';                    -- End of OCM-BIOS Reloading
                 vram_slot_ids   <=  "00010000";             -- Restore VRAM Slot ID after each reboot
@@ -811,8 +809,8 @@ begin
                                     WarmMSXlogo     <=  '1';
                                 end if;
                             -- SMART CODE   #127
-                            when "01111111" =>                                  -- Pixel Ratio 1:1 for LED Display
-                                RatioMode       <=  RatioMode - 1;
+                            when "01111111" =>                                  -- Null Command (deleted on this machine)
+                                null;
                             -- SMART CODE   #128
                             when "10000000" =>                                  -- Null Command $80 (reserved) (useful for programming)
                                 null;
@@ -971,7 +969,6 @@ begin
                                 end if;
                             -- SMART CODE   #255
                             when "11111111" =>                                  -- Restore All Defaults + Reserve Default Mapper & MegaSD
-                                RatioMode               <=  "000";
                                 bios_reload_req         <=  '0';
                                 io42_id212(5 downto 0)  <=  ff_dip_req(5 downto 0);
                                 ff_dip_ack(5 downto 0)  <=  ff_dip_req(5 downto 0);

@@ -569,7 +569,6 @@ architecture RTL of emsx_top is
             forced_v_mode   : inout std_logic;                                  -- Forced Video Mode        :   0=60Hz, 1=50Hz
 
             right_inverse   : inout std_logic;                                  -- Right Inverse Audio      :   0=Off (normal wave), 1=On (inverse wave)
-            RatioMode       : inout std_logic_vector(  2 downto 0 );            -- Pixel Ratio 1:1 for LED Display (default is 0) (range 0-7) (60Hz only)
             centerYJK_R25_n : inout std_logic;                                  -- Centering YJK Modes/R25 Mask (0=centered, 1=shifted to the right)
             legacy_sel      : inout std_logic;                                  -- Legacy Output selector   :   0=Assigned to VGA, 1=Assigned to VGA+
             iSlt1_linear    : inout std_logic;                                  -- Internal Slot1 Linear    :   0=Disabled, 1=Enabled
@@ -650,7 +649,6 @@ architecture RTL of emsx_top is
     signal  pseudoStereo    : std_logic;
     signal  extclk3m        : std_logic;
     signal  right_inverse   : std_logic;
-    signal  RatioMode       : std_logic_vector(  2 downto 0 ) := (others => '0');
     signal  centerYJK_R25_n : std_logic;
     signal  legacy_sel      : std_logic;
     signal  iSlt1_linear    : std_logic;
@@ -2720,7 +2718,7 @@ begin
 --                      VideoDHClk, VideoDLClk, open, open, Reso_v, ntsc_pal_type, forced_v_mode, legacy_vga);
         -- TH9958 VDP core
         port map(clk21m, reset, VdpReq, open, wrt, adr, VdpDbi, dbo, pVdpInt_n,
-                        open, WeVdp_n, VdpAdr, VrmDbi, VrmDbo, VdpSpeedMode_s, RatioMode, centerYJK_R25_s,
+                        open, WeVdp_n, VdpAdr, VrmDbi, VrmDbo, VdpSpeedMode_s, "000", centerYJK_R25_s,
                         VideoR, VideoG, VideoB, VideoHS_n, VideoVS_n, VideoCS_n,
                         VideoDHClk, VideoDLClk, open, interlace_mode, Reso_v, ntsc_pal_type, forced_v_mode, legacy_vga,
                         vga_int_field, spMaxSpr, VDP_ID, OFFSET_Y);
@@ -2849,7 +2847,6 @@ begin
             forced_v_mode   => forced_v_mode    ,
 
             right_inverse   => right_inverse    ,
-            RatioMode       => RatioMode        ,
             centerYJK_R25_n => centerYJK_R25_n  ,
             legacy_sel      => legacy_sel       ,
             iSlt1_linear    => iSlt1_linear     ,
