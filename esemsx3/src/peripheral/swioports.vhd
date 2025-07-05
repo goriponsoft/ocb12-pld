@@ -233,7 +233,7 @@ begin
     begin
         if( power_on_reset = '0' )then
             VDP_ID <= "00010";                              -- Default VDP ID
-            ff_display_mode <= "01";
+            ff_display_mode <= "00";
         elsif( clk21m'event and clk21m = '1' )then
             if( reset = '1' )then
 
