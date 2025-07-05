@@ -333,6 +333,7 @@ architecture RTL of emsx_top is
             pRamDbo         : out   std_logic_vector(  7 downto 0 );
 
             VdpSpeedMode    : in    std_logic;                          -- for TH9958 VDP core
+            RatioMode       : in    std_logic_vector(  2 downto 0 );    -- for TH9958 VDP core
             centerYJK_R25_n : in    std_logic;                          -- for TH9958 VDP core
 
             -- Video Output
@@ -2717,7 +2718,7 @@ begin
 --                      VideoDHClk, VideoDLClk, open, open, Reso_v, ntsc_pal_type, forced_v_mode, legacy_vga);
         -- TH9958 VDP core
         port map(clk21m, reset, VdpReq, open, wrt, adr, VdpDbi, dbo, pVdpInt_n,
-                        open, WeVdp_n, VdpAdr, VrmDbi, VrmDbo, VdpSpeedMode_s, centerYJK_R25_s,
+                        open, WeVdp_n, VdpAdr, VrmDbi, VrmDbo, VdpSpeedMode_s, "000", centerYJK_R25_s,
                         VideoR, VideoG, VideoB, VideoHS_n, VideoVS_n, VideoCS_n,
                         VideoDHClk, VideoDLClk, open, interlace_mode, Reso_v, ntsc_pal_type, forced_v_mode, legacy_vga,
                         vga_int_field, spMaxSpr, VDP_ID, OFFSET_Y);

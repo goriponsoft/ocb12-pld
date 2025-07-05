@@ -123,7 +123,9 @@ ENTITY VDP_VGA IS
         VIDEOHSOUT_N    : OUT   STD_LOGIC;
         VIDEOVSOUT_N    : OUT   STD_LOGIC;
         -- HDMI SUPPORT
-        BLANK_O         : OUT   STD_LOGIC
+        BLANK_O         : OUT   STD_LOGIC;
+        -- MISC
+        RATIOMODE       : IN    STD_LOGIC_VECTOR( 2 DOWNTO 0)
     );
 END VDP_VGA;
 
@@ -197,13 +199,13 @@ BEGIN
         CONSTANT BASE_LEFT_X    : INTEGER := CENTER_X - 32 - 2 - 3;             -- 35
     BEGIN
         IF( CLK21M'EVENT AND CLK21M = '1' )THEN
-            IF( (INTERLACEMODE = '1' OR PALMODE = '1') AND LEGACY_VGA = '1' )THEN
+            IF( (RATIOMODE = "000" OR INTERLACEMODE = '1' OR PALMODE = '1') AND LEGACY_VGA = '1' )THEN
                 -- LEGACY OUTPUT
                 DISP_START_X := RIGHT_X;                                        -- 106
             ELSIF( PALMODE = '1' )THEN
                 -- 50HZ
                 DISP_START_X := PAL_RIGHT_X;                                    -- 87
-            ELSIF( INTERLACEMODE = '1' )THEN
+            ELSIF( RATIOMODE = "000" OR INTERLACEMODE = '1' )THEN
                 -- 60HZ
                 DISP_START_X := CENTER_X;                                       -- 72
             ELSIF( (VCOUNTERIN < 38 + DISP_START_Y + PRB_HEIGHT) OR
@@ -213,7 +215,7 @@ BEGIN
                 -- PIXEL RATIO 1:1 (VGA MODE, 60HZ, NOT INTERLACED)
 --              IF( EVENODD = '0' )THEN                                         -- Plot from top-right
                 IF( EVENODD = '1' )THEN                                         -- Plot from top-left
-                    DISP_START_X := BASE_LEFT_X + 7;                            -- 35 TO 41
+                    DISP_START_X := BASE_LEFT_X + CONV_INTEGER(NOT RATIOMODE);  -- 35 TO 41
                 ELSE
                     DISP_START_X := RIGHT_X;                                    -- 106
                 END IF;
