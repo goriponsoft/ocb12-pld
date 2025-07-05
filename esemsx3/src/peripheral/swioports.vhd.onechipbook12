@@ -797,12 +797,8 @@ begin
                                 vga_int_field   <=  '1';
                             -- SMART CODES  #094, #..., #125                    -- Free Group
                             -- SMART CODE   #126
-                            when "01111110" =>                                  -- System Logo On (the logo will be displayed after a warm reset)
-                                if( ff_ldbios_n = '0' )then
-                                    null;
-                                else                                            -- System Logo On [No effect via IPL-ROM]
-                                    WarmMSXlogo     <=  '1';
-                                end if;
+                            when "01111110" =>                                  -- Null Command (deleted on this machine)
+                                null;
                             -- SMART CODE   #127
                             when "01111111" =>                                  -- Null Command (deleted on this machine)
                                 null;
