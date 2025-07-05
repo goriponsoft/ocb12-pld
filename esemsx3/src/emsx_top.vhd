@@ -594,7 +594,6 @@ architecture RTL of emsx_top is
             ff_dip_req      : in    std_logic_vector(  7 downto 0 );            -- DIP-SW states/reqs
             ff_dip_ack      : inout std_logic_vector(  7 downto 0 );            -- DIP-SW acks
 
-            vram_slot_ids   : inout std_logic_vector(  7 downto 0 );            -- VRAM Slot IDs            :   MSB(4bits)=0-15 for Page 1, LSB(4bits)=0-15 for Page 0
             DefKmap         : inout std_logic;                                  -- Default keyboard layout  :   0=JP, 1=Non-JP (BR, ES, FR, IT, US, ...)
 
             ff_ldbios_n     : in    std_logic;                                  -- OCM-BIOS loading status
@@ -663,8 +662,6 @@ architecture RTL of emsx_top is
     signal  safe_mode       : std_logic := '0';
     signal  ff_dip_req      : std_logic_vector(  7 downto 0 ) := "10000011";        -- overwrites any startup errors with the most common settings
     signal  ff_dip_ack      : std_logic_vector(  7 downto 0 );
-    signal  vram_slot_ids   : std_logic_vector(  7 downto 0 ) := "00010000";
-    signal  vram_page       : std_logic_vector(  7 downto 0 );
     signal  DefKmap         : std_logic;
     signal  JIS2_ena        : std_logic;
     signal  LevCtrl         : std_logic_vector(  2 downto 0 );
@@ -2493,10 +2490,10 @@ begin
                         SdrAdr(8 downto 0) <= CpuAdr(20 downto 12);                                         -- cpu read/write
                     elsif( VdpAdr(15) = '0' )then
                         SdrAdr(12 downto 11) <= "00";
-                        SdrAdr(8 downto 0) <= "1" & vram_page(3 downto 0) & VdpAdr(14 downto 11);           -- vdp read/write (even)
+                        SdrAdr(8 downto 0) <= "10000" & VdpAdr(14 downto 11);                               -- vdp read/write (even)
                     else
                         SdrAdr(12 downto 11) <= "00";
-                        SdrAdr(8 downto 0) <= "1" & vram_page(7 downto 4) & VdpAdr(14 downto 11);           -- vdp read/write (odd)
+                        SdrAdr(8 downto 0) <= "10001" & VdpAdr(14 downto 11);                               -- vdp read/write (odd)
                     end if;
                 when others =>
                     null;
@@ -2612,16 +2609,6 @@ begin
 
     pMemAdr     <= SdrAdr;
     pMemDat     <= SdrDat;
-
-    -- VRAM page assignment
-    process( clk21m )
-    begin
-        if( clk21m'event and clk21m = '1' )then
-            if( VideoDLClk = '0' )then
-                vram_page <= vram_slot_ids;
-            end if;
-        end if;
-    end process;
 
     ----------------------------------------------------------------
     -- Reserved ports (USB)
@@ -2874,7 +2861,6 @@ begin
             ff_dip_req      => ff_dip_req       ,
             ff_dip_ack      => ff_dip_ack       ,
 
-            vram_slot_ids   => vram_slot_ids    ,
             DefKmap         => DefKmap          ,
 
             ff_ldbios_n     => ff_ldbios_n      ,

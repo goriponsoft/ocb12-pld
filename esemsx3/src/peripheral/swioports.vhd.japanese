@@ -114,7 +114,6 @@ entity switched_io_ports is
         ff_dip_req      : in    std_logic_vector(  7 downto 0 );            -- DIP-SW states/reqs
         ff_dip_ack      : inout std_logic_vector(  7 downto 0 );            -- DIP-SW acks
 
-        vram_slot_ids   : inout std_logic_vector(  7 downto 0 );            -- VRAM Slot IDs            :   MSB(4bits)=0-15 for Page 1, LSB(4bits)=0-15 for Page 0
         DefKmap         : inout std_logic;                                  -- Default keyboard layout  :   0=JP, 1=Non-JP (BR, ES, FR, IT, US, ...)
 
         ff_ldbios_n     : in    std_logic;                                  -- OCM-BIOS loading status
@@ -215,9 +214,6 @@ begin
             -- $4C ID212 states of physical dip-sw => read only
             ff_dip_req
                 when( (adr(3 downto 0) = "1100") and (io40_n = "00101011") )else
-            -- $4D ID212 VRAM Slot IDs => read/write_n
-            vram_slot_ids
-                when( (adr(3 downto 0) = "1101") and (io40_n = "00101011") )else
             -- $4E ID212 [MSB] ocm_pld_vers_xy(v0.0~v25.5) [LSB] => read only
             ocm_pld_xy
                 when( (adr(3 downto 0) = "1110") and (io40_n = "00101011") )else
@@ -245,7 +241,6 @@ begin
 --              io40_n          <=  "11111111";             -- The reset of Port $40 is managed by IPL-ROM
                 bios_reload_req <=  '0';                    -- OCM-BIOS Reloading is Off (default)
                 bios_reload_ack <=  '0';                    -- End of OCM-BIOS Reloading
-                vram_slot_ids   <=  "00010000";             -- Restore VRAM Slot ID after each reboot
                 if( warmRESET /= '1' )then
                     -- Cold Reset
 --                  io41_id212_n    <=  "00000000";         -- Smart Commands will be zero at 1st boot
@@ -1057,10 +1052,6 @@ begin
                         else
                             VDP_ID          <=  "00010";                        -- Set VDP ID = 2 (V9958) (default)
                         end if;
-                    end if;
-                    -- in assignment: 'Port $4D ID212 [VRAM Slot IDs]' (read/write_n)
-                    if( req = '1' and wrt = '1' and (adr(3 downto 0) = "1101")  and (io40_n = "00101011") )then
-                        vram_slot_ids       <=  not dbo;
                     end if;
                     -- in assignment: 'Port $4E ID212 [JIS2 enabler] [Reserved for IPL-ROM]' (write_n only)
                     if( req = '1' and wrt = '1' and (adr(3 downto 0) = "1110")  and (io40_n = "00101011") and ff_ldbios_n = '0' )then
