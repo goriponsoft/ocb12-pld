@@ -591,14 +591,8 @@ begin
                             when "00010110" =>                                  -- Non-Japanese Keyboard Layout
                                 swioKmap        <=  '1';
                             -- SMART CODES  #023, #024, #025, #026
-                            when "00010111" =>                                  -- Display Mode 15kHz Composite or S-Video
-                                display_mode_req(1 downto 0)  <=  "00";
-                            when "00011000" =>                                  -- Display Mode 15kHz RGB + Audio (Mono)
-                                display_mode_req(1 downto 0)  <=  "10";
-                            when "00011001" =>                                  -- Display Mode 31kHz VGA for LED TV or LED Display (50Hz+60Hz)
-                                display_mode_req(1 downto 0)  <=  "01";
-                            when "00011010" =>                                  -- Display Mode 31kHz VGA+ for CRT Monitor (legacy output) (50Hz+60Hz)
-                                display_mode_req(1 downto 0)  <=  "11";
+                            when "00010111" | "00011000" | "00011001" | "00011010" =>
+                                null;                                           -- Null Commands (deleted on this machine)
                             -- SMART CODES  #027, #028
                             when "00011011" =>                                  -- VDP Speed Mode is Normal (default)
                                 VdpSpeedMode    <=  '0';
@@ -797,12 +791,8 @@ begin
                                 vga_int_field   <=  '1';
                             -- SMART CODES  #094, #..., #125                    -- Free Group
                             -- SMART CODE   #126
-                            when "01111110" =>                                  -- System Logo On (the logo will be displayed after a warm reset)
-                                if( ff_ldbios_n = '0' )then
-                                    null;
-                                else                                            -- System Logo On [No effect via IPL-ROM]
-                                    WarmMSXlogo     <=  '1';
-                                end if;
+                            when "01111110" =>                                  -- Null Command (deleted on this machine)
+                                null;
                             -- SMART CODE   #127
                             when "01111111" =>                                  -- Null Command (deleted on this machine)
                                 null;
