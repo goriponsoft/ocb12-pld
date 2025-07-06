@@ -591,14 +591,8 @@ begin
                             when "00010110" =>                                  -- Non-Japanese Keyboard Layout
                                 swioKmap        <=  '1';
                             -- SMART CODES  #023, #024, #025, #026
-                            when "00010111" =>                                  -- Display Mode 15kHz Composite or S-Video
-                                display_mode_req(1 downto 0)  <=  "00";
-                            when "00011000" =>                                  -- Display Mode 15kHz RGB + Audio (Mono)
-                                display_mode_req(1 downto 0)  <=  "10";
-                            when "00011001" =>                                  -- Display Mode 31kHz VGA for LED TV or LED Display (50Hz+60Hz)
-                                display_mode_req(1 downto 0)  <=  "01";
-                            when "00011010" =>                                  -- Display Mode 31kHz VGA+ for CRT Monitor (legacy output) (50Hz+60Hz)
-                                display_mode_req(1 downto 0)  <=  "11";
+                            when "00010111" | "00011000" | "00011001" | "00011010" =>
+                                null;                                           -- Null Commands (deleted on this machine)
                             -- SMART CODES  #027, #028
                             when "00011011" =>                                  -- VDP Speed Mode is Normal (default)
                                 VdpSpeedMode    <=  '0';
