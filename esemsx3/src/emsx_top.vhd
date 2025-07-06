@@ -276,7 +276,9 @@ architecture RTL of emsx_top is
             PpiPortC    : in     std_logic_vector(  7 downto 0 );
             pKeyX       : out    std_logic_vector(  7 downto 0 );
 
-            CmtScro     : inout  std_logic
+            CmtScro     : inout  std_logic;
+
+            Ps2Sel      : in     std_logic
         );
     end component;
 
@@ -2690,7 +2692,7 @@ begin
 
     U06 : eseps2
         port map(clk21m, reset, clkena, Kmap, Caps, Kana, Paus, Scro, Reso, Fkeys,
-                        pPs2Clk, pPs2Dat, PpiPortC, PpiPortB, CmtScro);
+                        pPs2Clk, pPs2Dat, PpiPortC, PpiPortB, CmtScro, '0');
 
     U07 : rtc
         port map(clk21m, '0', rtcena, RtcReq, open, wrt, adr, RtcDbi, dbo);

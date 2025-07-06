@@ -70,7 +70,9 @@ module eseps2 #(
     input   [7:0]   PpiPortC,
     output  [7:0]   pKeyX,
 
-    input           CmtScro
+    input           CmtScro,
+
+    input           Ps2Sel
 
 //  output  [15:0]  debug_sig
 );
@@ -858,7 +860,8 @@ module eseps2 #(
     keymap u_keymap (
     .adr    ( ff_keymap_index   ),
     .clk    ( clk21m            ),
-    .dbi    ( w_keymap_dat      )
+    .dbi    ( w_keymap_dat      ),
+    .sel    ( Ps2Sel            )
     );
 
 //  assign debug_sig    = { Caps, Kana, CmtScro, ff_numlk_key,3'd0, ff_ps2_sub_state, ff_ps2_state };

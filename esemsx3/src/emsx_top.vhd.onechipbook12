@@ -45,9 +45,11 @@ library ieee;
 
 entity emsx_top is
     generic(
-        use_wifi_g          : boolean := true;
-        use_midi_g          : boolean := false;
-        set_low_scanlines_g : boolean := true
+        use_fpga_pin17      : std_logic := '1';
+        blt_key_layout      : std_logic := '0';
+        use_wifi_g          : boolean   := true;
+        use_midi_g          : boolean   := false;
+        set_low_scanlines_g : boolean   := true
     );
     port(
         -- Clock, Reset ports
@@ -276,7 +278,9 @@ architecture RTL of emsx_top is
             PpiPortC    : in     std_logic_vector(  7 downto 0 );
             pKeyX       : out    std_logic_vector(  7 downto 0 );
 
-            CmtScro     : inout  std_logic
+            CmtScro     : inout  std_logic;
+
+            Ps2Sel      : in     std_logic
         );
     end component;
 
@@ -1164,7 +1168,11 @@ begin
     process( clk21m )
     begin
         if( clk21m'event and clk21m = '1' )then
-            Kmap            <=  swioKmap;                                               -- keyboard layout assignment
+            if( use_fpga_pin17 = '1' and pIopRsv14 = '1' )then                          -- keyboard layout assignment
+                Kmap    <=  blt_key_layout;
+            else
+                Kmap    <=  swioKmap;
+            end if;
             CmtScro         <=  swioCmt;
             Slot1Mode       <=  io42_id212(3);
             Slot2Mode(1)    <=  io42_id212(4);
@@ -2688,7 +2696,7 @@ begin
 
     U06 : eseps2
         port map(clk21m, reset, clkena, Kmap, Caps, Kana, Paus, Scro, Reso, Fkeys,
-                        pPs2Clk, pPs2Dat, PpiPortC, PpiPortB, CmtScro);
+                        pPs2Clk, pPs2Dat, PpiPortC, PpiPortB, CmtScro, pIopRsv14);
 
     U07 : rtc
         port map(clk21m, '0', rtcena, RtcReq, open, wrt, adr, RtcDbi, dbo);
