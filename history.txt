@@ -43,7 +43,7 @@
 -- OCM-PLD Dev    https://github.com/gnogni/ocm-pld-dev
 -- OCM-PLD News   https://x.com/ocm_pld_news
 --
--- ocb12-pld      https://github.com/goriponsoft/ocb12-pld
+-- ocb12-pld-dev  https://github.com/goriponsoft/ocb12-pld-dev
 
 -- Altera Quartus II v11.0sp1 Web Edition (1chipMSX, Zemmix Neo and SX-1)
 --                https://mega.nz/file/FdJgSbDB#UL9W4iM1T9rx_FdcbCuBwgtiTp8P2tDoiClobiNTQnI
@@ -59,6 +59,22 @@
 
 ________________________________
 OneChipBook-12-PLD              \__________________________________________________________________________________
+
+v20250707
+- Deleted Slot#0 Primary mode and C-BIOS mode (to reduce logic elements).
+- Deleted turboR compatible PCM, System timer, Pause key status (to reduce logic elements).
+- Deleted smart commands #013 to #020, #023 to #026, #029, #030, #126, #127, #252, #254 (to reduce logic elements).
+- Deleted toggle keys SHIFT+F12 and SHIFT+ScrollLock (to reduce logic elements).
+- Deleted "portF4_mode" signal and fix signal level to 0 (to reduce logic elements).
+- Deleted "iPsg2_ena" signal (to reduce logic elements).
+- Deleted "RatioMode" signal and fixed signal level at '000' (to reduce logic elements).
+- Deleted "vram_slot_ids" signal, deleted "vram_page" signal and fixed the signal level to '00010000', and deleted the function of Switched I/O port 4Dh (to reduce logic elements).
+- Disable MIDI function.
+- Changed the Machine Type ID to 15 (Unknown).
+- Fixed an issue where the video output was overly bright.
+- Corrected the timing of video output switching to occur during the vertical blanking period.
+- Deleted video output setting function of DIPSW2-3.
+- Implemented automatic keymap switching function linked to pressing Fn+4 (Requires hardware modification).
 
 
 
