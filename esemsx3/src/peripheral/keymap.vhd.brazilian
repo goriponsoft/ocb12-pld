@@ -426,7 +426,7 @@ constant rom_int_cnv : rom_1024 := (
         X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", -- 50
         X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", -- 58
         X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", -- 60
-        X"7F", X"47", X"7F", X"48", X"81", X"7F", X"7F", X"7F", -- 68
+        X"7F", X"47", X"7F", X"48", X"18", X"7F", X"7F", X"7F", -- 68
         X"28", X"38", X"68", X"7F", X"78", X"58", X"7F", X"7F", -- 70
         X"7F", X"7F", X"4F", X"7F", X"6F", X"5F", X"7F", X"7F", -- 78
         X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", -- 80
@@ -546,8 +546,8 @@ constant rom_int_ntv : rom_512 := (
         X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"57", X"FF", -- 60
         X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", -- 68
         X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"27", X"FF", -- 70
-        X"1F", X"FF", X"FF", X"FF", X"FF", X"FF", X"7E", X"FF", -- 78
-        X"FF", X"FF", X"FF", X"46", X"FF", X"FF", X"FF", X"FF", -- 80
+        X"1F", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", -- 78
+        X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", -- 80
         X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", -- 88
         X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", -- 90
         X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", -- 98

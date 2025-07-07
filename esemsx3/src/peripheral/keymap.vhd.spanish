@@ -380,7 +380,7 @@ constant rom_int_cnv : rom_1024 := (
 -- Keymap for Built-in Conversion Keyboard (set 2) / Shift = OFF
 --      PS/2 Scan Code XX
         X"7F", X"3F", X"7F", X"17", X"76", X"56", X"66", X"0F", -- 00
-        X"7F", X"2F", X"67", X"26", X"07", X"37", X"D1", X"7F", -- 08
+        X"7F", X"2F", X"67", X"26", X"07", X"37", X"B1", X"7F", -- 08
         X"7F", X"26", X"86", X"7F", X"16", X"64", X"10", X"7F", -- 10
         X"7F", X"7F", X"75", X"05", X"62", X"45", X"20", X"7F", -- 18
         X"7F", X"03", X"55", X"13", X"23", X"40", X"30", X"7F", -- 20
@@ -389,7 +389,7 @@ constant rom_int_cnv : rom_1024 := (
         X"7F", X"7F", X"24", X"73", X"25", X"70", X"01", X"7F", -- 38
         X"7F", X"22", X"04", X"63", X"44", X"00", X"11", X"7F", -- 40
         X"7F", X"32", X"42", X"14", X"71", X"54", X"21", X"7F", -- 48
-        X"7F", X"7F", X"F0", X"7F", X"61", X"A1", X"7F", X"7F", -- 50
+        X"7F", X"7F", X"A0", X"7F", X"61", X"A1", X"7F", X"7F", -- 50
         X"7F", X"7F", X"77", X"12", X"7F", X"41", X"7F", X"7F", -- 58
         X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"57", X"7F", -- 60
         X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", -- 68
@@ -426,7 +426,7 @@ constant rom_int_cnv : rom_1024 := (
         X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", -- 50
         X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", -- 58
         X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", -- 60
-        X"7F", X"47", X"7F", X"48", X"81", X"7F", X"7F", X"7F", -- 68
+        X"7F", X"47", X"7F", X"48", X"18", X"7F", X"7F", X"7F", -- 68
         X"28", X"38", X"68", X"7F", X"78", X"58", X"7F", X"7F", -- 70
         X"7F", X"7F", X"4F", X"7F", X"6F", X"5F", X"7F", X"7F", -- 78
         X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", -- 80
@@ -449,7 +449,7 @@ constant rom_int_cnv : rom_1024 := (
 -- Keymap for Built-in Conversion Keyboard (set 2) / Shift = ON
 --      PS/2 Scan code XX with Shift
         X"FF", X"BF", X"FF", X"97", X"F6", X"D6", X"E6", X"8F", -- 00
-        X"FF", X"AF", X"E7", X"A6", X"87", X"B7", X"B1", X"FF", -- 08
+        X"FF", X"AF", X"E7", X"A6", X"87", X"B7", X"D1", X"FF", -- 08
         X"FF", X"A6", X"86", X"C6", X"96", X"E4", X"90", X"FF", -- 10
         X"FF", X"FF", X"F5", X"85", X"E2", X"C5", X"51", X"FF", -- 18
         X"FF", X"83", X"D5", X"93", X"A3", X"C0", X"B0", X"FF", -- 20
@@ -458,7 +458,7 @@ constant rom_int_cnv : rom_1024 := (
         X"FF", X"FF", X"A4", X"F3", X"A5", X"E0", X"82", X"FF", -- 38
         X"FF", X"A2", X"84", X"E3", X"C4", X"91", X"81", X"FF", -- 40
         X"FF", X"B2", X"C2", X"94", X"02", X"D4", X"D2", X"FF", -- 48
-        X"FF", X"FF", X"A0", X"FF", X"E1", X"F1", X"FF", X"FF", -- 50
+        X"FF", X"FF", X"F0", X"FF", X"E1", X"F1", X"FF", X"FF", -- 50
         X"B6", X"FF", X"F7", X"92", X"FF", X"C1", X"FF", X"FF", -- 58
         X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"D7", X"FF", -- 60
         X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", -- 68
