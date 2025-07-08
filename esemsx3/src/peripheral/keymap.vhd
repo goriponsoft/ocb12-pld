@@ -371,12 +371,25 @@ constant rom_int_cnv : rom_1024 := (
 -- Special keys for Built-in Conversion Keyboard
 -- PS/2 KEYS        : MSX KEYS
 -------------------------------------
--- F6     ($0B)     : [GRAPH]   ($26)
--- F7     ($83)     : [KANA]    ($46)
--- F8     ($0A)     : [SELECT]  ($67)
--- END    ($E0 $69) : [STOP]    ($47)
--- ALT L  ($11)     : [GRAPH]   ($26)
-
+-- F6     ($0B)     : [GRAPH]    ($26)
+-- F7     ($83)     : [KANA]     ($46) ** KANA Default
+-- F8     ($0A)     : [SELECT]   ($67)
+-- HOME   ($E0 $6C) : [HOME/CLS] ($18) ** FN+Left
+-- END    ($E0 $69) : [STOP]     ($47) ** FN+Right
+-- ALT L  ($11)     : [GRAPH]    ($26) ** FN2 default
+-- Insert ($E0 $70) : [INS]      ($28) ** INS default
+--
+-- PS/2 KEYS        : OCM-PLD KEYS
+-------------------------------------
+-- F9     ($01)     : [PSG Vol]    ($3F)
+-- F10    ($09)     : [SCC Vol]    ($2F)
+-- F11    ($78)     : [FM Vol]     ($1F)
+-- F12    ($07)     : [CPU Spd]    ($0F) ** FN+F11 / FN+F
+-- PgUp   ($E0 $7D) : [Mas Vol+]   ($5F) ** FN+Up
+-- PgDn   ($E0 $7A) : [Mas Vol-]   ($4F) ** FN+Down
+-- PrtScr ($E0 $7C) : [Video Chg.] ($6F)
+-- ScrLck ($7E)     : [LED Chg.]   ($7E)
+--
 -- Keymap for Built-in Conversion Keyboard (set 2) / Shift = OFF
 --      PS/2 Scan Code XX
         X"7F", X"3F", X"7F", X"17", X"76", X"56", X"66", X"0F", -- 00
@@ -390,7 +403,7 @@ constant rom_int_cnv : rom_1024 := (
         X"7F", X"22", X"04", X"63", X"44", X"00", X"11", X"7F", -- 40
         X"7F", X"32", X"42", X"14", X"71", X"54", X"21", X"7F", -- 48
         X"7F", X"7F", X"A0", X"7F", X"61", X"A1", X"7F", X"7F", -- 50
-        X"7F", X"7F", X"77", X"12", X"7F", X"41", X"7F", X"7F", -- 58
+        X"36", X"7F", X"77", X"12", X"7F", X"41", X"7F", X"7F", -- 58
         X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"57", X"7F", -- 60
         X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", -- 68
         X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"27", X"7F", -- 70
@@ -520,15 +533,28 @@ constant rom_int_ntv : rom_512 := (
 
 -- Special keys for Built-in Native keyboard
 -----------------------------------------
--- PS/2 KEYS             : MSX KEYS
------------------------------------------
--- F6          ($0B)     : [GRAPH]  ($26)
--- F7          ($83)     : [KANA]   ($46)
--- F8          ($0A)     : [SELECT] ($67)
--- END         ($E0 $69) : [STOP]   ($47)
--- Han/Zenkaku ($0E)     : [@`]     ($51)
--- ALT L       ($11)     : [_]      ($52)
-
+-- Special keys for Built-in Conversion Keyboard
+-- PS/2 KEYS        : MSX KEYS
+-------------------------------------
+-- F6     ($0B)     : [GRAPH]    ($26)
+-- F7     ($83)     : [KANA]     ($46) ** KANA Default
+-- F8     ($0A)     : [SELECT]   ($67)
+-- HOME   ($E0 $6C) : [HOME/CLS] ($18) ** FN+Left
+-- END    ($E0 $69) : [STOP]     ($47) ** FN+Right
+-- Insert ($E0 $70) : [INS]      ($28) ** INS default
+-- ALT L  ($11)     : [_]        ($52) ** FN2 default
+--
+-- PS/2 KEYS        : OCM-PLD KEYS
+-------------------------------------
+-- F9     ($01)     : [PSG Vol]    ($3F)
+-- F10    ($09)     : [SCC Vol]    ($2F)
+-- F11    ($78)     : [FM Vol]     ($1F)
+-- F12    ($07)     : [CPU Spd]    ($0F) ** FN+F11 / FN+F
+-- PgUp   ($E0 $7D) : [Mas Vol+]   ($5F) ** FN+Up
+-- PgDn   ($E0 $7A) : [Mas Vol-]   ($4F) ** FN+Down
+-- PrtScr ($E0 $7C) : [Video Chg.] ($6F)
+-- ScrLck ($7E)     : [LED Chg.]   ($7E)
+--
 -- Keymap for Built-in Native keyboard (set 2)
 --      PS/2 Scan Code XX
         X"FF", X"3F", X"FF", X"17", X"76", X"56", X"66", X"0F", -- 00
@@ -546,7 +572,7 @@ constant rom_int_ntv : rom_512 := (
         X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"57", X"FF", -- 60
         X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", -- 68
         X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"27", X"FF", -- 70
-        X"1F", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", -- 78
+        X"1F", X"FF", X"FF", X"FF", X"FF", X"FF", X"7E", X"FF", -- 78
         X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", -- 80
         X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", -- 88
         X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", -- 90
