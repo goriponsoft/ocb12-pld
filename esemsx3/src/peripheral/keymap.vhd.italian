@@ -299,7 +299,7 @@ constant rom106 : rom_512 := (
 -- Keymap for 106 keyboard (set 2)
 --      PS/2 Scan Code XX
         X"FF", X"3F", X"FF", X"17", X"76", X"56", X"66", X"0F", -- 00
-        X"FF", X"2F", X"67", X"26", X"07", X"37", X"52", X"FF", -- 08
+        X"FF", X"2F", X"67", X"26", X"07", X"37", X"27", X"FF", -- 08
         X"FF", X"26", X"06", X"46", X"16", X"64", X"10", X"FF", -- 10
         X"FF", X"FF", X"75", X"05", X"62", X"45", X"20", X"FF", -- 18
         X"FF", X"03", X"55", X"13", X"23", X"40", X"30", X"FF", -- 20
@@ -308,9 +308,9 @@ constant rom106 : rom_512 := (
         X"FF", X"FF", X"24", X"73", X"25", X"70", X"01", X"FF", -- 38
         X"FF", X"22", X"04", X"63", X"44", X"00", X"11", X"FF", -- 40
         X"FF", X"32", X"42", X"14", X"71", X"54", X"21", X"FF", -- 48
-        X"FF", X"52", X"02", X"FF", X"51", X"31", X"FF", X"FF", -- 50
+        X"FF", X"41", X"02", X"FF", X"51", X"31", X"FF", X"FF", -- 50
         X"36", X"06", X"77", X"61", X"FF", X"12", X"FF", X"FF", -- 58
-        X"FF", X"41", X"FF", X"FF", X"1B", X"FF", X"57", X"3B", -- 60
+        X"FF", X"FF", X"FF", X"FF", X"1B", X"FF", X"57", X"3B", -- 60
         X"FF", X"49", X"41", X"79", X"2A", X"FF", X"FF", X"FF", -- 68
         X"39", X"7A", X"59", X"0A", X"1A", X"3A", X"27", X"6A", -- 70
         X"1F", X"19", X"69", X"5A", X"09", X"4A", X"7E", X"FF", -- 78
@@ -334,7 +334,7 @@ constant rom106 : rom_512 := (
 --      PS/2 Scan Code E0 XX
         X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", -- 00
         X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", -- 08
-        X"FF", X"3B", X"FF", X"FF", X"1B", X"FF", X"FF", X"FF", -- 10
+        X"FF", X"26", X"FF", X"FF", X"16", X"FF", X"FF", X"FF", -- 10
         X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"08", -- 18  (LWIN = 0x1F => SPACE)
         X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"08", -- 20  (RWIN = 0x27 => SPACE)
         X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"46", -- 28  (APP  = 0x2F => KANA )
@@ -374,10 +374,10 @@ constant rom_int_cnv : rom_1024 := (
 -- F6     ($0B)     : [GRAPH]    ($26)
 -- F7     ($83)     : [KANA]     ($46) ** KANA Default
 -- F8     ($0A)     : [SELECT]   ($67)
--- HOME   ($E0 $6C) : [HOME/CLS] ($18) ** FN+Left
--- END    ($E0 $69) : [STOP]     ($47) ** FN+Right
--- ALT L  ($11)     : [GRAPH]    ($26) ** FN2 default
+-- Home   ($E0 $6C) : [HOME/CLS] ($18) ** FN+Left
+-- End    ($E0 $69) : [STOP]     ($47) ** FN+Right
 -- Insert ($E0 $70) : [INS]      ($28) ** INS default
+-- Alt(L) ($11)     : [GRAPH]    ($26) ** FN2 default
 --
 -- PS/2 KEYS        : OCM-PLD KEYS
 -------------------------------------
@@ -532,17 +532,15 @@ constant rom_int_cnv : rom_1024 := (
 constant rom_int_ntv : rom_512 := (
 
 -- Special keys for Built-in Native keyboard
------------------------------------------
--- Special keys for Built-in Conversion Keyboard
 -- PS/2 KEYS        : MSX KEYS
 -------------------------------------
 -- F6     ($0B)     : [GRAPH]    ($26)
 -- F7     ($83)     : [KANA]     ($46) ** KANA Default
 -- F8     ($0A)     : [SELECT]   ($67)
--- HOME   ($E0 $6C) : [HOME/CLS] ($18) ** FN+Left
--- END    ($E0 $69) : [STOP]     ($47) ** FN+Right
+-- Home   ($E0 $6C) : [HOME/CLS] ($18) ** FN+Left
+-- End    ($E0 $69) : [STOP]     ($47) ** FN+Right
 -- Insert ($E0 $70) : [INS]      ($28) ** INS default
--- ALT L  ($11)     : [_]        ($52) ** FN2 default
+-- Alt(L) ($11)     : [_]        ($52) ** FN2 default
 --
 -- PS/2 KEYS        : OCM-PLD KEYS
 -------------------------------------
