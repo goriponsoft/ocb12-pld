@@ -139,8 +139,7 @@ constant rom101 : rom_1024 := (
 -- F8    ($0A)     : [SELECT]  ($67)
 -- END   ($E0 $69) : [STOP]    ($47)
 -- LALT  ($11)     : [GRAPH]   ($26)
--- RALT  ($E0 $11) : [CANCEL]  ($3B)
--- RCTRL ($E0 $14) : [EXECUTE] ($1B)
+-- RALT  ($E0 $11) : [GRAPH]   ($26)
 
 -- 101 keyboard (set 2) / Shift = OFF
 --      PS/2 Scan Code XX
@@ -290,7 +289,7 @@ constant rom106 : rom_512 := (
 -- F7          ($83)     : [KANA]       ($46)
 -- F8          ($0A)     : [SELECT]     ($67)
 -- END         ($E0 $69) : [STOP]       ($47)
--- Han/Zenkaku ($0E)     : [UNDERSCORE] ($52)
+-- Han/Zen     ($0E)     : [ESC]        ($27)
 -- Katakana    ($13)     : [KANA]       ($46)
 -- LALT        ($11)     : [GRAPH]      ($26)
 -- RALT        ($E0 $11) : [CANCEL]     ($3B)
@@ -308,7 +307,7 @@ constant rom106 : rom_512 := (
         X"FF", X"FF", X"24", X"73", X"25", X"70", X"01", X"FF", -- 38
         X"FF", X"22", X"04", X"63", X"44", X"00", X"11", X"FF", -- 40
         X"FF", X"32", X"42", X"14", X"71", X"54", X"21", X"FF", -- 48
-        X"FF", X"41", X"02", X"FF", X"51", X"31", X"FF", X"FF", -- 50
+        X"FF", X"52", X"02", X"FF", X"51", X"31", X"FF", X"FF", -- 50
         X"36", X"06", X"77", X"61", X"FF", X"12", X"FF", X"FF", -- 58
         X"FF", X"FF", X"FF", X"FF", X"1B", X"FF", X"57", X"3B", -- 60
         X"FF", X"49", X"41", X"79", X"2A", X"FF", X"FF", X"FF", -- 68
