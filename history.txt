@@ -60,6 +60,10 @@
 ________________________________
 OneChipBook-12-PLD              \__________________________________________________________________________________
 
+v20250717
+- Changed I/O Revision ID to 0 (due to smart command deletion)
+- Fixed an issue where a backslash was being entered using the underscore key on an external Japanese keyboard.
+
 v20250709
 - Deleted Slot#0 Primary mode and C-BIOS mode (to reduce logic elements).
 - Deleted turboR compatible PCM, System timer, Pause key status (to reduce logic elements).
