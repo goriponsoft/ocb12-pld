@@ -96,12 +96,10 @@ entity switched_io_ports is
 
         btn_scan        : in    std_logic;                                  -- Scanlines button
         vga_scanlines   : inout std_logic_vector(  1 downto 0 );            -- VGA Scanlines None, Light, Medium or Heavy (default is None)
-        SdrSize         : in    std_logic_vector(  1 downto 0 );            -- SDRAM size ID 0-3
         bios_reload_ack : out   std_logic;                                  -- OCM-BIOS Reloading ack
         Mapper0_req     : inout std_logic;                                  -- Extra-Mapper req         :   Warm Reset is required to complete the request
 
         xmr_ena         : inout std_logic;                                  -- Extended MegaROM Reading :   0=Off (default for compatibility), 1=On
-        SdrSizeAux      : in    std_logic_vector(  2 downto 0 );            -- Auxiliary SDRAM size ID 0-7
         OFFSET_Y        : inout std_logic_vector(  6 downto 0 );            -- Vertical Offset ID 16-24
 
         spMaxSpr        : inout std_logic;                                  -- Sprite Limit             :   0=4/8 (standard), 1=8/8 (enhanced)
@@ -155,10 +153,6 @@ architecture RTL of switched_io_ports is
     constant swioRevNr  : std_logic_vector(  4 downto 0 ) :=    "01100";    -- 12
 
 begin
-    -- SDRAM size IDs
---  SdrSize     <= "10";                                                    -- 32 MB SDRAM (default)
---  SdrSizeAux  <= "111";                                                   -- n/a (default)
-
     -- out assignment: 'ports $40-$4F'
             -- $40 => read_n/write
     dbi <=  io40_n
@@ -202,10 +196,10 @@ begin
                 when( (adr(3 downto 0) = "1010") and (io40_n = "00101011") )else
 --  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             -- $4B ID212 [Dynamic Port 4B d-ID $00], if $44 ID212 equ #000 states as below => read only
-            '1' & Mapper0_req & bios_reload_req & SdrSize & '0' & vga_scanlines
+            '1' & Mapper0_req & bios_reload_req & "10" & '0' & vga_scanlines
                 when( (adr(3 downto 0) = "1011") and (io40_n = "00101011") and (io44_id212 = "00000000") )else
             -- $4B ID212 [Dynamic Port 4B d-ID $01], if $44 ID212 equ #001 states as below => read only
-            std_logic_vector(OFFSET_Y - 12)(3 downto 0) & SdrSizeAux & xmr_ena
+            std_logic_vector(OFFSET_Y - 12)(3 downto 0) & "111" & xmr_ena
                 when( (adr(3 downto 0) = "1011") and (io40_n = "00101011") and (io44_id212 = "00000001") )else
             -- $4B ID212 [Dynamic Port 4B d-ID $02], if $44 ID212 equ #002 states as below => read only
             portF2_ena & safe_mode & '1' & Mapper0_ack & '0' & low_scale_n & vga_int_field & spMaxSpr
@@ -757,22 +751,14 @@ begin
                                 null;
                             -- SMART CODES  #086, #087
                             when "01010110" =>                                  -- Extra-Mapper 4096 KB Off (warm reset to go) (default)
-                                if( SdrSize /= "00" )then
-                                    Mapper0_req <=  '0';
-                                    if( ff_ldbios_n = '0' )then                 -- Extra-Mapper 4096 KB Off (ready to go) [Reserved for IPL-ROM]
-                                        Mapper0_ack <=  '0';
-                                    end if;
-                                else
-                                    io41_id212_n    <=  "11111111";             -- Not available when SDRAM size is 8 MB
+                                Mapper0_req <=  '0';
+                                if( ff_ldbios_n = '0' )then                 -- Extra-Mapper 4096 KB Off (ready to go) [Reserved for IPL-ROM]
+                                    Mapper0_ack <=  '0';
                                 end if;
                             when "01010111" =>                                  -- Extra-Mapper 4096 KB On (warm reset to go)
-                                if( SdrSize /= "00" )then
-                                    Mapper0_req <=  '1';
-                                    if( ff_ldbios_n = '0' )then                 -- Extra-Mapper 4096 KB On (ready to go) [Reserved for IPL-ROM]
-                                        Mapper0_ack <=  '1';
-                                    end if;
-                                else
-                                    io41_id212_n    <=  "11111111";             -- Not available when SDRAM size is 8 MB
+                                Mapper0_req <=  '1';
+                                if( ff_ldbios_n = '0' )then                 -- Extra-Mapper 4096 KB On (ready to go) [Reserved for IPL-ROM]
+                                    Mapper0_ack <=  '1';
                                 end if;
                             -- SMART CODES  #088, #089
                             when "01011000" =>                                  -- Extended MegaROM Reading Off (default for compatibility)

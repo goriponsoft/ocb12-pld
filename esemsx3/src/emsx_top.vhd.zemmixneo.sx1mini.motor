@@ -578,12 +578,10 @@ architecture RTL of emsx_top is
 
             btn_scan        : in    std_logic;                                  -- Scanlines button
             vga_scanlines   : inout std_logic_vector(  1 downto 0 );            -- VGA Scanlines None, Light, Medium or Heavy (default is None)
-            SdrSize         : in    std_logic_vector(  1 downto 0 );            -- SDRAM size ID 0-3
             bios_reload_ack : out   std_logic;                                  -- OCM-BIOS Reloading ack
             Mapper0_req     : inout std_logic;                                  -- Extra-Mapper req         :   Warm Reset is required to complete the request
 
             xmr_ena         : inout std_logic;                                  -- Extended MegaROM Reading :   0=Off (default for compatibility), 1=On
-            SdrSizeAux      : in    std_logic_vector(  2 downto 0 );            -- Auxiliary SDRAM size ID 0-7
             OFFSET_Y        : inout std_logic_vector(  6 downto 0 );            -- Vertical Offset ID 16-24
 
             spMaxSpr        : inout std_logic;                                  -- Sprite Limit             :   0=4/8 (standard), 1=8/8 (enhanced)
@@ -927,9 +925,6 @@ architecture RTL of emsx_top is
     signal  SdrLdq          : std_logic;
     signal  SdrAdr          : std_logic_vector( 12 downto 0 ) := (others => '0');
     signal  SdrDat          : std_logic_vector( 15 downto 0 );
-
-    constant SdrSize        : std_logic_vector(  1 downto 0 ) := "10";              -- 32 MB SDRAM (default)
-    constant SdrSizeAux     : std_logic_vector(  2 downto 0 ) := "111";             -- n/a (default)
 
     constant SdrCmd_de      : std_logic_vector(  3 downto 0 ) := "1111";            -- deselect
     constant SdrCmd_pr      : std_logic_vector(  3 downto 0 ) := "0010";            -- precharge all
@@ -1897,7 +1892,7 @@ begin
     -- Slot0-X
     rom_main    <=  mem when( (w_prislt_dec(0) and w_expslt0_dec(0) and (w_page_dec(0) or w_page_dec(1))) = '1'                                 )else   -- 0-0 (0000-7FFFh)    32 KB  MSX2P   .ROM / MSXTR   .ROM
                     '0';
-    iSltMap0    <=  mem when( (w_prislt_dec(0) and w_expslt0_dec(1) and iSlt0_1 ) = '1' and adr /= X"FFFF" and SdrSize /= "00"                  )else   -- 0-1 (0000-FFFEh)  4096 KB  Extra-Mapper
+    iSltMap0    <=  mem when( (w_prislt_dec(0) and w_expslt0_dec(1) and iSlt0_1 ) = '1' and adr /= X"FFFF"                                      )else   -- 0-1 (0000-FFFEh)  4096 KB  Extra-Mapper
                     '0';
     rom_opll    <=  mem when( (w_prislt_dec(0) and w_expslt0_dec(2) and w_page_dec(1)) = '1'                                                    )else   -- 0-2 (4000-7FFFh)    16 KB  MSX2PMUS.ROM / MSXTRMUS.ROM
                     '0';
@@ -2276,12 +2271,12 @@ begin
                             "00" & "0"  & MapAdr(21 downto 20)              when( iSltMap  = '1' and FullRAM = '1' )else        -- [A+B]0xxxxx => 4096 KB Mapper(RAM)
                             "00" & "00" & MapAdr(20)                        when( iSltMap  = '1' )else                          -- [ A ]0xxxxx => 2048 KB Mapper(RAM)
                             "00" & "100"                                    when( iSltLin2 = '1' )else                          -- [ C ]0xxxxx =>   64 KB Linear over ESE-SCC2(L) / ESE-SCC2-SMN(L)
-                            "0" & Scc2Adr(21) & "10" & Scc2Adr(20)          when( iSltScc2 = '1' and SdrSize /= "00" )else      -- [ C ]0xxxxx => 4096 KB ESE-SCC2(L) + ESE-SCC2(H)
+                            "0" & Scc2Adr(21) & "10" & Scc2Adr(20)          when( iSltScc2 = '1' )else                          -- [ C ]0xxxxx => 4096 KB ESE-SCC2(L) + ESE-SCC2(H)
 --                          "00" & "1" & Scc2Adr(21 downto 20)              when( iSltScc2 = '1' and Scc2Adr(21) = '0' )else    -- [ C ]0xxxxx => 2048 KB ESE-SCC2-SMN(L)               <= only for SDRAM < 16 MB
 --                          "00" & "0" & Scc2Adr(20) & not Scc2Adr(20)      when( iSltScc2 = '1' and FullRAM = '1' )else        -- [A~B]1xxxxx => 2048 KB ESE-SCC2-SMN(H)(M4)           <= only for SDRAM < 16 MB + Mapper 4096 KB
 --                          "00" & not Scc2Adr(21) & Scc2Adr(21 downto 20)  when( iSltScc2 = '1' )else                          -- [ B ]0xxxxx => 2048 KB ESE-SCC2-SMN(H)(M2)           <= only for SDRAM < 16 MB + Mapper 2048 KB
-                            "01" & "100"                                    when( iSltLin1 = '1' and SdrSize /= "00" )else      -- [ C ]2xxxxx =>   64 KB Linear over ESE-SCC1
-                            "01" & "10" & Scc1Adr(20)                       when( iSltScc1 = '1' and SdrSize /= "00" )else      -- [ C ]2xxxxx => 2048 KB ESE-SCC1
+                            "01" & "100"                                    when( iSltLin1 = '1' )else                          -- [ C ]2xxxxx =>   64 KB Linear over ESE-SCC1
+                            "01" & "10" & Scc1Adr(20)                       when( iSltScc1 = '1' )else                          -- [ C ]2xxxxx => 2048 KB ESE-SCC1
 --                          "00" & "001"                                    when( iSltLin1 = '1' and FullRAM = '1' )else        -- [ A ]1xxxxx =>   64 KB Linear over ESE-SCC1-SMN(M4)  <= only for SDRAM < 16 MB + Mapper 4096 KB
 --                          "00" & "0" & Scc1Adr(20) & not Scc1Adr(20)      when( iSltScc1 = '1' and FullRAM = '1' )else        -- [A~B]1xxxxx => 2048 KB ESE-SCC1-SMN(M4)              <= only for SDRAM < 16 MB + Mapper 4096 KB
 --                          "00" & "010"                                    when( iSltLin1 = '1' )else                          -- [ B ]0xxxxx =>   64 KB Linear over ESE-SCC1-SMN(M2)  <= only for SDRAM < 16 MB + Mapper 2048 KB
@@ -2440,14 +2435,6 @@ begin
     -- Memo:    SdrAdr(12 downto 11) <= CpuAdr(24 downto 23);
     --          SdrBa ( 1 downto  0) <= CpuAdr(22 downto 21);
     --------------------------------------------------------------------------------
-    -- SdrSize    => Default SDRAM size ID (0-3)
-    --               8 MB, 16 MB, 32 MB (default), Over 32 MB
-    --
-    -- SdrSizeAux => Auxiliary SDRAM size ID (0-7)
-    --               64 MB, 128 MB, 192 MB, 256 MB, 384 MB, 512 MB, 768 MB, 1024 MB
-    --------------------------------------------------------------------------------
-    -- In 2nd Gen machines, the SDRAM size is assigned within 'Switched I/O ports'
-    --------------------------------------------------------------------------------
     process( memclk )
     begin
         if( memclk'event and memclk = '1' )then
@@ -2458,9 +2445,6 @@ begin
                         SdrAdr <= "00" & "010" & "0" & "010" & "0" & "000";
                         SdrBa  <= "00";                                             -- bank A
                     else                                                            -- set [row address]
---                      if( RstSeq(4 downto 2) = "010" and warmRESET /= '1' and SdrSize = "00" )then
---                          SdrAdr <= (others => '0');                              -- clear "AB" mark : Mapper(RAM) >> ESE-SCC1-SMN (only if SDRAM = 8 MB)
---                          SdrBa  <= "0" & RstSeq(1);                              -- set bank A+B
                         if( RstSeq(4 downto 2) = "010" and warmRESET /= '1' )then
                             SdrAdr <= "0100000000000";                              -- clear "AB" mark : ESE-SCC1
                             SdrBa  <= "1" & RstSeq(1);                              -- set bank C+D
@@ -2505,11 +2489,7 @@ begin
     process( memclk )
     begin
         if( memclk'event and memclk = '1' )then
-            if( SdrSize /= "00" )then
-                iSlt0_1 <= Mapper0_ack;
-            else
-                iSlt0_1 <= '0';
-            end if;
+            iSlt0_1 <= Mapper0_ack;
         end if;
     end process;
 
@@ -2843,12 +2823,10 @@ begin
 
             btn_scan        => '1'              ,
             vga_scanlines   => vga_scanlines    ,
-            SdrSize         => SdrSize          ,
             bios_reload_ack => bios_reload_ack  ,
             Mapper0_req     => Mapper0_req      ,
 
             xmr_ena         => xmr_ena          ,
-            SdrSizeAux      => SdrSizeAux       ,
             OFFSET_Y        => OFFSET_Y         ,
 
             spMaxSpr        => spMaxSpr         ,
