@@ -2323,12 +2323,6 @@ begin
                 if( RstSeq(4 downto 2) = "000" )then
                     SdrSta <= "000";                                                -- idle
                 elsif( RstSeq(4 downto 2) = "001" )then
-                --  case RstSeq(1 downto 0) is
-                --      when "00"       => SdrSta <= "000";                         -- idle
-                --      when "01"       => SdrSta <= "001";                         -- precharge all
-                --      when "10"       => SdrSta <= "010";                         -- refresh (more than 8 cycles)
-                --      when others     => SdrSta <= "011";                         -- mode register set
-                --  end case;
                     SdrSta <= "0" & RstSeq(1 downto 0);
                 elsif( RstSeq(4 downto 3) /= "11" )then
                     SdrSta <= "101";                                                -- Write (Initialize memory content)
