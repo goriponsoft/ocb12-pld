@@ -353,10 +353,6 @@ architecture RTL of emsx_top is
             BLANK_o         : out   std_logic;
             InterlaceMode   : out   std_logic;
 
-            -- CXA1645(RGB->NTSC encoder) signals
---          pVideoSC        : out   std_logic;                          -- for V9938 VDP core
---          pVideoSYNC      : out   std_logic;                          -- for V9938 VDP core
-
             -- Display resolution (0=15kHz, 1=31kHz)
             DispReso        : in    std_logic;
 
@@ -907,10 +903,6 @@ architecture RTL of emsx_top is
     signal  PsgVol          : std_logic_vector(  2 downto 0 ) := "100";
     signal  MstrVol         : std_logic_vector(  2 downto 0 ) := "000";
 
---  signal  pSltSndL        : std_logic_vector(  5 downto 0 );
---  signal  pSltSndR        : std_logic_vector(  5 downto 0 );
---  signal  pSltSound       : std_logic_vector(  5 downto 0 );
-
     -- External memory signals
     signal  RamReq          : std_logic;
     signal  RamAck          : std_logic;
@@ -989,8 +981,6 @@ architecture RTL of emsx_top is
     -- Sound output filter
     signal  lpf1_wave       : std_logic_vector( DACin'high downto 0 );
     signal  lpf5_wave       : std_logic_vector( DACin'high downto 0 );
---  signal  ff_lpf_div      : std_logic_vector( 3 downto 0 );                       -- sccic
---  signal  w_lpf2ena       : std_logic;                                            -- sccic
 
     -- ESP signals
     signal  esp_dout_s      : std_logic_vector(  7 downto 0 ) := (others => '1');
@@ -1338,8 +1328,6 @@ begin
     begin
         -- XTAL 21.47727MHz (ratio 1:1 + 150 clock ticks for aging)
         if( w_10hz_lfsr = "0001011110000110010111" )then    -- x"05E197" / LFSR count = 2147878 clock ticks
-        -- XTAL 50.00000MHz (ratio 55:128 + 150 clock ticks for aging)
---      if( w_10hz_lfsr = "0000000010110001101110" )then    -- x"002C6E" / LFSR count = 2148588 clock ticks
             w_10hz <= '1';
         else
             w_10hz <= '0';
@@ -1495,7 +1483,6 @@ begin
 
     pSltRsv5    <=  'Z';
     pSltRsv16   <=  'Z';
---  pSltRsv16   <=  '0' when( power_on_reset = '0' or reset = '1' )else 'Z';    -- can perform RESET_n lock on Cyclone I machine slot pins by applying a hardware patch (check the history.txt)
     pSltSw1     <=  'Z';
     pSltSw2     <=  'Z';
 
@@ -1979,7 +1966,6 @@ begin
                     Reso_v      <= '0';                             -- Hsync:15kHz
                     pVideoHS_n  <= 'Z';                             -- CSync Disabled
                     pVideoVS_n  <= DACout;                          -- Audio Out (Mono)
---                  legacy_vga  <= '0';                             -- behaves like vAllow_n        (for V9938 VDP core)
 
                 when "01" =>                                        -- RGB 15kHz
                     pDac_VR     <= "0" & VideoR( 5 downto 1 );      -- 50% Brightness
@@ -1988,7 +1974,6 @@ begin
                     Reso_v      <= '0';                             -- Hsync:15kHz
                     pVideoHS_n  <= VideoCS_n;                       -- CSync Enabled
                     pVideoVS_n  <= DACout;                          -- Audio Out (Mono)
---                  legacy_vga  <= '0';                             -- behaves like vAllow_n        (for V9938 VDP core)
 
                 when others =>                                      -- VGA / VGA+ 31kHz
                     pDac_VR     <= "0" & VideoR( 5 downto 1 );      -- 50% Brightness
@@ -1997,7 +1982,6 @@ begin
                     Reso_v      <= '1';                             -- Hsync:31kHz
                     pVideoHS_n  <= VideoHS_n;
                     pVideoVS_n  <= VideoVS_n;
---                  legacy_vga  <= not DisplayMode(0);              -- behaves like vAllow_n        (for V9938 VDP core)
                     if( legacy_sel = '0' )then                      -- Assignment of Legacy Output  (for TH9958 VDP core)
                         legacy_vga  <= not DisplayMode(0);          -- to VGA
                     else
@@ -2668,11 +2652,6 @@ begin
                         KanRom, KanAdr, RamDbi, open);
 
     U20 : vdp
-        -- V9938 VDP core
---      port map(clk21m, reset, VdpReq, open, wrt, adr, VdpDbi, dbo, pVdpInt_n,
---                      open, WeVdp_n, VdpAdr, VrmDbi, VrmDbo,
---                      VideoR, VideoG, VideoB, VideoHS_n, VideoVS_n, VideoCS_n,
---                      VideoDHClk, VideoDLClk, open, open, Reso_v, ntsc_pal_type, forced_v_mode, legacy_vga);
         -- TH9958 VDP core
         port map(clk21m, reset, VdpReq, open, wrt, adr, VdpDbi, dbo, pVdpInt_n,
                         open, WeVdp_n, VdpAdr, VrmDbi, VrmDbo, VdpSpeedMode_s, "000", centerYJK_R25_s,
@@ -2708,17 +2687,6 @@ begin
     OpllEnaWait <= ff_clksel xnor ff_clksel5m_n;
 
     -- sound output lowpass filter (sccic)
---  process( reset, clk21m )
---  begin
---      if( reset = '1' )then
---          ff_lpf_div <= (others => '0');
---      elsif( clk21m'event and clk21m = '1' )then
---          if( clkena = '1' )then
---              ff_lpf_div <= ff_lpf_div + 1;
---          end if;
---      end if;
---  end process;
-
     u_interpo : interpo
         generic map(
             msbi    => DACin'high
@@ -2732,8 +2700,6 @@ begin
         );
 
     -- low pass filter
---  w_lpf2ena <= '1' when( ff_lpf_div(0) = '1' and clkena = '1' )else '0';  -- sccic
-
     u_lpf2 : lpf2
         generic map(
             msbi    => DACin'high
@@ -2741,8 +2707,7 @@ begin
         port map(
             clk21m  => clk21m               ,
             reset   => not power_on_reset   ,
---          clkena  => w_lpf2ena            ,   -- sccic
-            clkena  => clkena               ,   -- no sccic
+            clkena  => clkena               ,
             idata   => lpf1_wave            ,
             odata   => lpf5_wave
         );
