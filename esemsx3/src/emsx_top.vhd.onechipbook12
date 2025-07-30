@@ -336,7 +336,6 @@ architecture RTL of emsx_top is
             pRamDbi         : in    std_logic_vector( 15 downto 0 );
             pRamDbo         : out   std_logic_vector(  7 downto 0 );
 
-            VdpSpeedMode    : in    std_logic;                          -- for TH9958 VDP core
             RatioMode       : in    std_logic_vector(  2 downto 0 );    -- for TH9958 VDP core
             centerYJK_R25_n : in    std_logic;                          -- for TH9958 VDP core
 
@@ -546,8 +545,6 @@ architecture RTL of emsx_top is
             CustomSpeed     : inout std_logic_vector(  3 downto 0 );            -- Counter limiter of CPU wait control
             tMegaSD         : inout std_logic;                                  -- Turbo on MegaSD access   :   3.58MHz to 5.37MHz auto selection
             tPanaRedir      : inout std_logic;                                  -- tPana Redirection switch
-            VdpSpeedMode    : inout std_logic;                                  -- VDP Speed Mode           :   0=Normal, 1=Fast
-            V9938_n         : in    std_logic;                                  -- VDP core installed       :   0=V9938, 1=TH9958
             Mapper_req      : inout std_logic;                                  -- Mapper req               :   Warm Reset is required to complete the request
             Mapper_ack      : out   std_logic;                                  -- Current Mapper state
             MegaSD_req      : inout std_logic;                                  -- MegaSD req               :   Warm Reset is required to complete the request
@@ -628,8 +625,6 @@ architecture RTL of emsx_top is
     signal  CustomSpeed     : std_logic_vector(  3 downto 0 );
     signal  tMegaSD         : std_logic;
     signal  tPanaRedir      : std_logic;
-    signal  VdpSpeedMode    : std_logic;
-    signal  V9938_n         : std_logic;
     signal  Mapper_req      : std_logic;
     signal  Mapper_ack      : std_logic;
     signal  MegaSD_req      : std_logic;
@@ -844,7 +839,6 @@ architecture RTL of emsx_top is
     signal  VrmDbi          : std_logic_vector( 15 downto 0 );
     signal  pVdpInt_n       : std_logic;
     signal  centerYJK_R25_s : std_logic;
-    signal  VdpSpeedMode_s  : std_logic;
     signal  interlace_mode  : std_logic;
     signal  ntsc_pal_type   : std_logic;
     signal  forced_v_mode   : std_logic;
@@ -1953,9 +1947,6 @@ begin
     ----------------------------------------------------------------
     -- Video output
     ----------------------------------------------------------------
---  V9938_n <= '0';         -- '0' is V9938 VDP core
-    V9938_n <= '1';         -- '1' is TH9958 VDP core
-
     process( clk21m )
         variable r_v : unsigned(  5 downto 0 );
         variable g_v : unsigned(  5 downto 0 );
@@ -2658,12 +2649,11 @@ begin
     U20 : vdp
         -- TH9958 VDP core
         port map(clk21m, reset, VdpReq, open, wrt, adr, VdpDbi, dbo, pVdpInt_n,
-                        open, WeVdp_n, VdpAdr, VrmDbi, VrmDbo, VdpSpeedMode_s, "000", centerYJK_R25_s,
+                        open, WeVdp_n, VdpAdr, VrmDbi, VrmDbo, "000", centerYJK_R25_s,
                         VideoR, VideoG, VideoB, VideoHS_n, VideoVS_n, VideoCS_n,
                         VideoDHClk, VideoDLClk, open, interlace_mode, Reso_v, ntsc_pal_type, forced_v_mode, legacy_vga,
                         vga_int_field, spMaxSpr, VDP_ID, OFFSET_Y);
 
-    VdpSpeedMode_s <= VdpSpeedMode or (not hybridclk_n);
     centerYJK_R25_s <= centerYJK_R25_n or (not logo_timeout(1));
 
     U21 : vencode
@@ -2750,8 +2740,6 @@ begin
             CustomSpeed     => CustomSpeed      ,
             tMegaSD         => tMegaSD          ,
             tPanaRedir      => tPanaRedir       ,
-            VdpSpeedMode    => VdpSpeedMode     ,
-            V9938_n         => V9938_n          ,
             Mapper_req      => Mapper_req       ,
             Mapper_ack      => Mapper_ack       ,
             MegaSD_req      => MegaSD_req       ,

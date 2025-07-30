@@ -66,8 +66,6 @@ entity switched_io_ports is
         CustomSpeed     : inout std_logic_vector(  3 downto 0 );            -- Counter limiter of CPU wait control
         tMegaSD         : inout std_logic;                                  -- Turbo on MegaSD access   :   3.58MHz to 5.37MHz auto selection
         tPanaRedir      : inout std_logic;                                  -- tPana Redirection switch
-        VdpSpeedMode    : inout std_logic;                                  -- VDP Speed Mode           :   0=Normal, 1=Fast
-        V9938_n         : in    std_logic;                                  -- VDP core installed       :   0=V9938, 1=TH9958
         Mapper_req      : inout std_logic;                                  -- Mapper req               :   Warm Reset is required to complete the request
         Mapper_ack      : out   std_logic;                                  -- Current Mapper state
         MegaSD_req      : inout std_logic;                                  -- MegaSD req               :   Warm Reset is required to complete the request
@@ -183,7 +181,7 @@ begin
             (not (SccVol(2) or SccVol(1) or SccVol(0))) & SccVol & (not (OpllVol(2) or OpllVol(1) or OpllVol(0))) & OpllVol
                 when( (adr(3 downto 0) = "0110") and (io40_n = "00101011") )else
             -- $47 ID212 [MSB] megasd_req/mapper_req/vdpspeedmode/tpana_redir/turbo_megasd/custom_speed_lev(1-7) [LSB] => read only
-            MegaSD_req & Mapper_req & VdpSpeedMode & tPanaRedir & tMegaSD & ("001" - CustomSpeed(2 downto 0))
+            MegaSD_req & Mapper_req & '0' & tPanaRedir & tMegaSD & ("001" - CustomSpeed(2 downto 0))
                 when( (adr(3 downto 0) = "0111") and (io40_n = "00101011") )else
             -- $48 ID212 states as below => read only
             Blink_ena & RstReq_sta & LastRst_ack & Red_sta & LightsMode & CmtScro & swioKmap & not io41_id008_n
@@ -249,7 +247,6 @@ begin
                     CustomSpeed     <=  "0010";             -- Custom Speed #7 (aka "Turbo 10MHz")
                     tMegaSD         <=  '1';                -- Turbo MegaSD
                     tPanaRedir      <=  '0';                -- tPana Redirection is Off
-                    VdpSpeedMode    <=  '0';                -- VDP Speed Mode is Normal
                     Mapper_req      <=  ff_dip_req(6);      -- Set Mapper state to DIP-SW7 state
                     Mapper_ack      <=  ff_dip_req(6);      -- Prevent system crash using DIP-SW7
                     MegaSD_req      <=  ff_dip_req(7);      -- Set MegaSD state to DIP-SW8 state
@@ -588,10 +585,8 @@ begin
                             when "00010111" | "00011000" | "00011001" | "00011010" =>
                                 null;                                           -- Null Commands (deleted on this machine)
                             -- SMART CODES  #027, #028
-                            when "00011011" =>                                  -- VDP Speed Mode is Normal (default)
-                                VdpSpeedMode    <=  '0';
-                            when "00011100" =>                                  -- VDP Speed Mode is Fast (TH9958 only)
-                                VdpSpeedMode    <=  V9938_n;
+                            when "00011011" | "00011100" =>
+                                null;                                           -- Null Commands (deleted on this machine)
                             -- SMART CODES  #029, #030
                             when "00011101" | "00011110" =>                     -- Null Commands (deleted on this machine)
                                 null;
@@ -952,7 +947,6 @@ begin
                                 CustomSpeed             <=  "0010";
                                 tMegaSD                 <=  '1';
                                 tPanaRedir              <=  '0';
-                                VdpSpeedMode            <=  '0';
                                 Mapper_req              <=  ff_dip_req(6);
                                 MegaSD_req              <=  ff_dip_req(7);
                                 io41_id008_n            <=  '1';

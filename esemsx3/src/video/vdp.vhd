@@ -314,7 +314,6 @@ ENTITY VDP IS
         PRAMDBI             : IN    STD_LOGIC_VECTOR( 15 DOWNTO 0 );
         PRAMDBO             : OUT   STD_LOGIC_VECTOR(  7 DOWNTO 0 );
 
-        VDPSPEEDMODE        : IN    STD_LOGIC;
         RATIOMODE           : IN    STD_LOGIC_VECTOR(  2 DOWNTO 0 );
         CENTERYJK_R25_N     : IN    STD_LOGIC;
 
@@ -573,7 +572,6 @@ ARCHITECTURE RTL OF VDP IS
             REG_R8_SP_OFF   : IN    STD_LOGIC;      -- 0=Sprite On, 1=Sprite Off
             REG_R9_Y_DOTS   : IN    STD_LOGIC;      -- 0=192 Lines, 1=212 Lines
 
-            VDPSPEEDMODE    : IN    STD_LOGIC;
             DRIVE           : IN    STD_LOGIC;
 
             ACTIVE          : OUT   STD_LOGIC
@@ -1889,7 +1887,6 @@ BEGIN
         REG_R8_SP_OFF       => REG_R8_SP_OFF        ,
         REG_R9_Y_DOTS       => REG_R9_Y_DOTS        ,
 
-        VDPSPEEDMODE        => VDPSPEEDMODE         ,
         DRIVE               => VDP_COMMAND_DRIVE    ,
 
         ACTIVE              => VDP_COMMAND_ACTIVE
